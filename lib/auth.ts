@@ -14,7 +14,7 @@ export function getAuth() {
 }
 
 async function createAuth() {
-  const uri = process.env.MONGO_URI;
+  const uri = process.env.MONGO_URI?.trim();
 
   if (!uri) {
     throw new Error(

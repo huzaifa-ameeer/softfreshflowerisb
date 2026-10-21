@@ -1,13 +1,19 @@
 import { getAuth } from "@/lib/auth";
 
-export async function GET(request: Request) {
-  const auth = await getAuth();
+async function handle(request: Request) {
+  try {
+    const auth = await getAuth();
 
-  return auth.handler(request);
+    return await auth.handler(request);
+  } catch (error) {
+    console.error("[auth] request failed:", error);
+
+    return Response.json(
+      { message: "Authentication is temporarily unavailable." },
+      { status: 500 },
+    );
+  }
 }
 
-export async function POST(request: Request) {
-  const auth = await getAuth();
-
-  return auth.handler(request);
-}
+export const GET = handle;
+export const POST = handle;

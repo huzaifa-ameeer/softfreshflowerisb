@@ -62,7 +62,7 @@ const loginClass =
   "shrink-0 items-center justify-center rounded-md bg-pink-500 px-6 py-3 text-base font-semibold text-black transition-colors hover:bg-pink-600 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
 const logoutClass =
-  "shrink-0 items-center justify-center rounded-md border border-pink-500 px-6 py-3 text-base font-semibold text-pink-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
+  "shrink-0 items-center justify-center rounded-md border border-pink-500 px-4 py-2 text-sm font-semibold text-pink-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
 const mobileLinkBase =
   "rounded-md px-4 py-3.5 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";

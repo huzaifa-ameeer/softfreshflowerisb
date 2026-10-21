@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "thumb.wikimedia.org" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+    ],
+  },
   turbopack: {
     rules: {
       "*.css": {

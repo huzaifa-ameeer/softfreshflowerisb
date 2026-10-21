@@ -162,41 +162,58 @@ export default function HeroCarousel() {
     setIndex((current) => (current + offset + slides.length) % slides.length);
 
   return (
-    <section className="relative px-0 py-5 sm:px-6 sm:py-8 lg:px-8">
-      <div
-        className="relative mx-auto aspect-video w-full max-w-7xl overflow-hidden rounded-2xl bg-pink-100 sm:w-[92%] lg:w-[70%]"
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-        onFocus={() => setPaused(true)}
-        onBlur={() => setPaused(false)}
-      >
-        <div
-          className="flex h-full w-full transition-transform duration-1000 ease-out"
-          style={{ transform: `translateX(-${index * 100}%)` }}
-        >
-          {slides.map((slide, i) => (
-            <div
-              key={slide.src}
-              aria-hidden={i !== index}
-              className="relative h-full w-full shrink-0"
-            >
-              <Image
-                src={slide.src}
-                alt={slide.alt}
-                fill
-                priority={i === 0}
-                sizes="(max-width: 1280px) 100vw, 1280px"
-                className="object-cover"
+    <section
+      className="relative px-0 py-5 sm:px-6 sm:py-8 lg:px-8"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+    >
+      <div className="relative mx-auto w-full max-w-7xl sm:w-[92%] lg:w-[70%]">
+        <div className="relative aspect-video overflow-hidden rounded-2xl bg-pink-100">
+          <div
+            className="flex h-full w-full transition-transform duration-1000 ease-out"
+            style={{ transform: `translateX(-${index * 100}%)` }}
+          >
+            {slides.map((slide, i) => (
+              <div
+                key={slide.src}
+                aria-hidden={i !== index}
+                className="relative h-full w-full shrink-0"
+              >
+                <Image
+                  src={slide.src}
+                  alt={slide.alt}
+                  fill
+                  priority={i === 0}
+                  sizes="(max-width: 1280px) 100vw, 1280px"
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-md bg-black/40 px-3 py-2 sm:bottom-4">
+            {slides.map((slide, i) => (
+              <button
+                key={slide.src}
+                type="button"
+                onClick={() => setIndex(i)}
+                aria-label={`Show image ${i + 1}`}
+                aria-current={i === index}
+                className={`h-2 rounded-md transition-all ${
+                  i === index ? "w-6 bg-pink-500" : "w-2 bg-white/80 hover:bg-white"
+                }`}
               />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         <button
           type="button"
           onClick={() => step(-1)}
           aria-label="Previous image"
-          className="absolute left-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-md bg-black/40 text-white transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:left-4 sm:size-12"
+          className="absolute top-1/2 left-3 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-pink-700 shadow-md ring-1 ring-pink-200 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:left-4 sm:size-12 lg:-left-3 lg:-translate-x-full"
         >
           <ChevronIcon className="size-5 sm:size-6" direction="left" />
         </button>
@@ -205,25 +222,10 @@ export default function HeroCarousel() {
           type="button"
           onClick={() => step(1)}
           aria-label="Next image"
-          className="absolute right-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-md bg-black/40 text-white transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:right-4 sm:size-12"
+          className="absolute top-1/2 right-3 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-pink-700 shadow-md ring-1 ring-pink-200 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:right-4 sm:size-12 lg:-right-3 lg:translate-x-full"
         >
           <ChevronIcon className="size-5 sm:size-6" direction="right" />
         </button>
-
-        <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-md bg-black/40 px-3 py-2 sm:bottom-4">
-          {slides.map((slide, i) => (
-            <button
-              key={slide.src}
-              type="button"
-              onClick={() => setIndex(i)}
-              aria-label={`Show image ${i + 1}`}
-              aria-current={i === index}
-              className={`h-2 rounded-md transition-all ${
-                i === index ? "w-6 bg-pink-500" : "w-2 bg-white/80 hover:bg-white"
-              }`}
-            />
-          ))}
-        </div>
       </div>
 
       <div

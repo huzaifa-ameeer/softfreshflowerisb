@@ -13,6 +13,19 @@
   --font-sans: var(--font-space-grotesk);
 }
 
+@theme {
+  --animate-marquee: marquee 30s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-25%);
+    }
+  }
+}
+
 html {
   background-color: var(--background);
 }

@@ -11,7 +11,7 @@ export default function ReviewsPage() {
       </p>
       <Link
         href="/"
-        className="text-sm font-semibold text-pink-600 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
+        className="text-sm font-semibold text-pink-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
       >
         Back to home
       </Link>

@@ -67,7 +67,7 @@ function FlowerIcon({ className }: { className?: string }) {
       <circle cx="15.29" cy="16.53" r="3.4" />
       <circle cx="8.71" cy="16.53" r="3.4" />
       <circle cx="6.67" cy="10.27" r="3.4" />
-      <circle cx="12" cy="12" r="1.9" fill="white" />
+      <circle cx="12" cy="12" r="1.9" fill="var(--background)" />
     </svg>
   );
 }
@@ -147,7 +147,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
+    <header className="sticky top-0 z-50 border-b border-pink-200 bg-background">
       <nav className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-4 sm:h-20 sm:gap-4 sm:px-6 lg:px-8 xl:grid-cols-[1fr_auto_1fr]">
         <Link
           href="/"
@@ -157,7 +157,7 @@ export default function Navbar() {
             <FlowerIcon className="size-[1.1em] shrink-0 self-center" />
             <span className="min-w-0 truncate">softfreshflower</span>
           </span>
-          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.25em] text-pink-600 sm:text-xs">
+          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.25em] text-pink-700 sm:text-xs">
             isb
           </span>
         </Link>
@@ -209,7 +209,7 @@ export default function Navbar() {
       <div
         id="mobile-menu"
         inert={!isOpen}
-        className={`grid overflow-hidden border-t border-neutral-200 bg-white transition-[grid-template-rows,opacity] duration-300 ease-out xl:hidden ${
+        className={`grid overflow-hidden border-t border-pink-200 bg-background transition-[grid-template-rows,opacity] duration-300 ease-out xl:hidden ${
           isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >

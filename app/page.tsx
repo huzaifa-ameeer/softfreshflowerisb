@@ -5,7 +5,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold tracking-tight text-pink-500 sm:text-6xl">
           softfreshflower
         </h1>
-        <span className="text-xs font-semibold uppercase tracking-[0.25em] text-pink-600 sm:text-base">
+        <span className="text-xs font-semibold uppercase tracking-[0.25em] text-pink-700 sm:text-base">
           isb
         </span>
       </div>

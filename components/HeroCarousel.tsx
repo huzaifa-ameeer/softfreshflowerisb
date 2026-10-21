@@ -112,37 +112,6 @@ function Cake({ className }: { className?: string }) {
   );
 }
 
-const sparkleShapes = {
-  star: "M12 0c1 8 4 11 12 12-8 1-11 4-12 12-1-8-4-11-12-12 8-1 11-4 12-12Z",
-  spike: "M12 1l2.1 8.9L23 12l-8.9 2.1L12 23l-2.1-8.9L1 12l8.9-2.1Z",
-  dot: "M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16Z",
-  ring: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm0 4.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Z",
-} as const;
-
-type SparkleShape = keyof typeof sparkleShapes;
-
-function Sparkle({
-  className,
-  delay = 0,
-  shape = "star",
-  strong = false,
-}: {
-  className?: string;
-  delay?: number;
-  shape?: SparkleShape;
-  strong?: boolean;
-}) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="#ec4899" aria-hidden="true">
-      <path
-        className={strong ? "glow-strong" : "glow"}
-        style={{ animationDelay: `${delay}ms` }}
-        d={sparkleShapes[shape]}
-      />
-    </svg>
-  );
-}
-
 export default function HeroCarousel() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -234,39 +203,6 @@ export default function HeroCarousel() {
       >
         <FlowerSprig className="h-20 w-auto xl:h-28" />
         <FlowerSprig className="h-28 w-auto -rotate-6 xl:h-36" />
-
-        <Sparkle
-          className="absolute -top-8 right-6 h-3.5 w-3.5 xl:h-4 xl:w-4"
-          delay={0}
-          shape="star"
-          strong
-        />
-        <Sparkle
-          className="absolute right-1 top-14 h-2.5 w-2.5"
-          delay={350}
-          shape="dot"
-        />
-        <Sparkle
-          className="absolute -left-3 top-28 h-3 w-3"
-          delay={700}
-          shape="spike"
-        />
-        <Sparkle
-          className="absolute -top-3 left-12 h-2.5 w-2.5"
-          delay={1050}
-          shape="ring"
-          strong
-        />
-        <Sparkle
-          className="absolute -left-2 top-6 h-2.5 w-2.5"
-          delay={1400}
-          shape="dot"
-        />
-        <Sparkle
-          className="absolute right-10 top-6 h-2.5 w-2.5"
-          delay={1750}
-          shape="star"
-        />
       </div>
 
       <div
@@ -275,39 +211,6 @@ export default function HeroCarousel() {
       >
         <Cake className="h-20 w-auto xl:h-28" />
         <FlowerSprig className="h-28 w-auto rotate-6 xl:h-36" />
-
-        <Sparkle
-          className="absolute -top-8 left-6 h-3.5 w-3.5 xl:h-4 xl:w-4"
-          delay={200}
-          shape="spike"
-          strong
-        />
-        <Sparkle
-          className="absolute left-1 top-14 h-2.5 w-2.5"
-          delay={550}
-          shape="dot"
-        />
-        <Sparkle
-          className="absolute -right-3 top-24 h-3 w-3"
-          delay={900}
-          shape="star"
-        />
-        <Sparkle
-          className="absolute -top-3 right-12 h-2.5 w-2.5"
-          delay={1250}
-          shape="ring"
-        />
-        <Sparkle
-          className="absolute -right-2 top-6 h-2.5 w-2.5"
-          delay={1600}
-          shape="dot"
-          strong
-        />
-        <Sparkle
-          className="absolute left-10 top-6 h-2.5 w-2.5"
-          delay={1950}
-          shape="star"
-        />
       </div>
     </section>
   );

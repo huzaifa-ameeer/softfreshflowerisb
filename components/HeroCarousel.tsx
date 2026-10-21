@@ -58,7 +58,7 @@ export default function HeroCarousel() {
   return (
     <section className="px-0 py-5 sm:px-6 sm:py-8 lg:px-8">
       <div
-        className="relative mx-auto aspect-video w-full max-w-7xl overflow-hidden rounded-2xl bg-pink-100 sm:w-[85%] lg:w-[70%]"
+        className="relative mx-auto aspect-video w-full max-w-7xl overflow-hidden rounded-2xl bg-pink-100 sm:w-[92%] lg:w-[70%]"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocus={() => setPaused(true)}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 const DESKTOP_QUERY = "(min-width: 1280px)";
@@ -28,8 +29,17 @@ const navLinks = [
   { label: "Contact", href: "/contact" },
 ];
 
-const linkClass =
-  "rounded-md px-2.5 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
+function isActiveHref(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+const linkBase =
+  "rounded-md px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
+
+const linkIdle = `${linkBase} text-neutral-700 hover:bg-pink-500 hover:text-black`;
+
+const linkActive = `${linkBase} bg-pink-500 text-black`;
 
 const iconButtonClass =
   "inline-flex size-11 shrink-0 items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
@@ -37,8 +47,12 @@ const iconButtonClass =
 const loginClass =
   "shrink-0 items-center justify-center rounded-md bg-pink-500 px-6 py-3 text-base font-semibold text-black transition-colors hover:bg-pink-600 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
-const mobileLinkClass =
-  "rounded-md px-4 py-3.5 text-base font-medium text-neutral-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
+const mobileLinkBase =
+  "rounded-md px-4 py-3.5 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
+
+const mobileLinkIdle = `${mobileLinkBase} text-neutral-700 hover:bg-pink-500 hover:text-black`;
+
+const mobileLinkActive = `${mobileLinkBase} bg-pink-500 text-black`;
 
 function FlowerIcon({ className }: { className?: string }) {
   return (
@@ -104,6 +118,7 @@ function MenuIcon({ isOpen }: { isOpen: boolean }) {
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
   const isDesktop = useSyncExternalStore(
     subscribeToDesktop,
     getIsDesktop,
@@ -148,11 +163,20 @@ export default function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-1 justify-self-center xl:flex">
-          {navLinks.map((link) => (
-            <Link key={link.label} href={link.href} className={linkClass}>
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const active = isActiveHref(pathname, link.href);
+
+            return (
+              <Link
+                key={link.label}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={active ? linkActive : linkIdle}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 justify-self-end sm:gap-3">
@@ -191,16 +215,21 @@ export default function Navbar() {
       >
         <div className="min-h-0 max-h-[calc(100dvh_-_4rem)] overflow-y-auto overscroll-contain sm:max-h-[calc(100dvh_-_5rem)]">
           <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4 sm:px-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                onClick={() => setIsOpen(false)}
-                className={mobileLinkClass}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const active = isActiveHref(pathname, link.href);
+
+              return (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setIsOpen(false)}
+                  aria-current={active ? "page" : undefined}
+                  className={active ? mobileLinkActive : mobileLinkIdle}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
             <Link
               href="/login"
               onClick={() => setIsOpen(false)}

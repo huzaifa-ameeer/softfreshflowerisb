@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { categories, categoryTones, getCategory } from "../categories";
 
+export const instant = false;
+
 export function generateStaticParams() {
   return categories.map((category) => ({ category: category.slug }));
 }

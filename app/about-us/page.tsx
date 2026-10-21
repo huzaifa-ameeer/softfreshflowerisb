@@ -108,7 +108,7 @@ export default function AboutUsPage() {
       <div className="mt-10 flex justify-center">
         <Link
           href="/"
-          className="text-sm font-semibold text-pink-700 underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
+          className="inline-flex items-center justify-center rounded-md bg-[#7b2fbf] px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-[#6a28a6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
         >
           Back to home
         </Link>

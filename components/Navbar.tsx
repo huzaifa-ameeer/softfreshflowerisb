@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type MouseEvent,
+} from "react";
 
 const DESKTOP_QUERY = "(min-width: 1280px)";
 
@@ -35,11 +41,11 @@ function isActiveHref(pathname: string, href: string) {
 }
 
 const linkBase =
-  "rounded-md px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
+  "relative rounded-md px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
-const linkIdle = `${linkBase} text-neutral-700 hover:bg-pink-500 hover:text-black`;
+const linkIdle = `${linkBase} text-neutral-700 hover:bg-pink-200 hover:text-black`;
 
-const linkActive = `${linkBase} bg-pink-500 text-black`;
+const linkActive = `${linkBase} text-black`;
 
 const iconButtonClass =
   "inline-flex size-11 shrink-0 items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
@@ -57,7 +63,7 @@ const loginClass =
 const mobileLinkBase =
   "rounded-md px-4 py-3.5 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
-const mobileLinkIdle = `${mobileLinkBase} text-neutral-700 hover:bg-pink-500 hover:text-black`;
+const mobileLinkIdle = `${mobileLinkBase} text-neutral-700 hover:bg-pink-200 hover:text-black`;
 
 const mobileLinkActive = `${mobileLinkBase} bg-pink-500 text-black`;
 
@@ -147,11 +153,58 @@ export default function Navbar() {
     return () => desktop.removeEventListener("change", onDesktopChange);
   }, []);
 
+  const navLinksRef = useRef<HTMLDivElement>(null);
+  const [bubble, setBubble] = useState<{ left: number; width: number } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const container = navLinksRef.current;
+    if (!container) return;
+
+    const measure = () => {
+      const active = container.querySelector<HTMLElement>(
+        '[aria-current="page"]',
+      );
+
+      if (!active || active.offsetParent === null) {
+        setBubble(null);
+        return;
+      }
+
+      setBubble({ left: active.offsetLeft, width: active.offsetWidth });
+    };
+
+    measure();
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    window.addEventListener("resize", measure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [pathname, isDesktop]);
+
+  const handleLogoClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (pathname !== "/") return;
+
+    event.preventDefault();
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-pink-200 bg-background">
       <nav className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-4 sm:h-20 sm:gap-4 sm:px-6 lg:px-8 xl:grid-cols-[1fr_auto_1fr]">
         <Link
           href="/"
+          onClick={handleLogoClick}
           className="flex min-w-0 items-baseline gap-1.5 justify-self-start focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-500"
         >
           <span className="flex min-w-0 items-baseline text-lg font-bold tracking-tight text-pink-500 sm:text-2xl">
@@ -163,7 +216,18 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-1 justify-self-center xl:flex">
+        <div
+          ref={navLinksRef}
+          className="relative hidden items-center gap-1 justify-self-center xl:flex"
+        >
+          {bubble && (
+            <span
+              aria-hidden="true"
+              className="absolute top-0 bottom-0 rounded-md bg-pink-500 transition-[left,width] duration-300 ease-out motion-reduce:transition-none"
+              style={{ left: bubble.left, width: bubble.width }}
+            />
+          )}
+
           {navLinks.map((link) => {
             const active = isActiveHref(pathname, link.href);
 

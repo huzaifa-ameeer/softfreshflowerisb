@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Navbar from "@/components/Navbar";
+import { ToastHost } from "@/components/Toast";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <AnnouncementBar />
         <Navbar />
         {children}
+        <ToastHost />
       </body>
     </html>
   );

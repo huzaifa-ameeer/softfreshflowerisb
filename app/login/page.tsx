@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
+import { showToast } from "@/components/Toast";
 import { authClient } from "@/lib/auth-client";
 
 const fieldClass =
@@ -29,7 +30,7 @@ export default function LoginPage() {
     setError(null);
     setPending(true);
 
-    const { error: signInError } = await authClient.signIn.email({
+    const { data, error: signInError } = await authClient.signIn.email({
       email,
       password,
     });
@@ -40,6 +41,9 @@ export default function LoginPage() {
       return;
     }
 
+    showToast(
+      data?.user?.name ? `Welcome back, ${data.user.name}` : "Welcome back",
+    );
     router.push("/");
   }
 

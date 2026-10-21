@@ -56,7 +56,7 @@ export default function HeroCarousel() {
     setIndex((current) => (current + offset + slides.length) % slides.length);
 
   return (
-    <section className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    <section className="px-0 py-5 sm:px-6 sm:py-8 lg:px-8">
       <div
         className="relative mx-auto aspect-video w-full max-w-7xl overflow-hidden rounded-2xl bg-pink-100 sm:w-[85%] lg:w-[70%]"
         onMouseEnter={() => setPaused(true)}

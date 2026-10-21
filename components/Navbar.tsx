@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type MouseEvent,
+} from "react";
 
 const DESKTOP_QUERY = "(min-width: 1280px)";
 
@@ -147,11 +152,24 @@ export default function Navbar() {
     return () => desktop.removeEventListener("change", onDesktopChange);
   }, []);
 
+  const handleLogoClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (pathname !== "/") return;
+
+    event.preventDefault();
+
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-pink-200 bg-background">
       <nav className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-4 sm:h-20 sm:gap-4 sm:px-6 lg:px-8 xl:grid-cols-[1fr_auto_1fr]">
         <Link
           href="/"
+          onClick={handleLogoClick}
           className="flex min-w-0 items-baseline gap-1.5 justify-self-start focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-500"
         >
           <span className="flex min-w-0 items-baseline text-lg font-bold tracking-tight text-pink-500 sm:text-2xl">

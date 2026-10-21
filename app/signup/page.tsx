@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
+import { showToast } from "@/components/Toast";
 import { authClient } from "@/lib/auth-client";
 
 const fieldClass =
@@ -44,6 +45,7 @@ export default function SignupPage() {
       return;
     }
 
+    showToast(`Welcome to Soft Fresh Flower, ${name}`);
     router.push("/");
   }
 

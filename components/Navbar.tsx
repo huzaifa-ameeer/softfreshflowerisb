@@ -43,7 +43,7 @@ function isActiveHref(pathname: string, href: string) {
 const linkBase =
   "relative rounded-md px-2.5 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
-const linkIdle = `${linkBase} text-neutral-700 hover:bg-pink-500 hover:text-black`;
+const linkIdle = `${linkBase} text-neutral-700 hover:bg-pink-200 hover:text-black`;
 
 const linkActive = `${linkBase} text-black`;
 
@@ -63,7 +63,7 @@ const loginClass =
 const mobileLinkBase =
   "rounded-md px-4 py-3.5 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
-const mobileLinkIdle = `${mobileLinkBase} text-neutral-700 hover:bg-pink-500 hover:text-black`;
+const mobileLinkIdle = `${mobileLinkBase} text-neutral-700 hover:bg-pink-200 hover:text-black`;
 
 const mobileLinkActive = `${mobileLinkBase} bg-pink-500 text-black`;
 

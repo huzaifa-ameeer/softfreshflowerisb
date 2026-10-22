@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { showToast } from "@/components/Toast";
 import { Spinner } from "@/components/admin/Loader";
 import ProductForm, { type AdminProduct } from "@/components/admin/ProductForm";
@@ -33,18 +33,6 @@ export default function ProductsManager({ mode }: { mode: Mode }) {
   const [editing, setEditing] = useState<AdminProduct | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    const query = mode === "fresh" ? "?fresh=1" : mode === "top" ? "?top=1" : "";
-    const result = await adminFetch<{ items: AdminProduct[] }>(
-      `/api/admin/products${query}`,
-    );
-
-    if (result.ok) {
-      setProducts(result.data.items ?? []);
-      setError(null);
-    }
-  }, [mode]);
-
   useEffect(() => {
     void (async () => {
       const query =
@@ -64,24 +52,40 @@ export default function ProductsManager({ mode }: { mode: Mode }) {
     })();
   }, [mode]);
 
+  function matchesMode(product: AdminProduct) {
+    if (mode === "fresh") return product.isFresh;
+    if (mode === "top") return product.isTopSelling;
+    return true;
+  }
+
   async function toggle(product: AdminProduct, field: "isFresh" | "isTopSelling") {
+    const previous = products;
+    const next = !product[field];
+
+    setProducts((current) =>
+      current
+        .map((item) =>
+          item.id === product.id ? { ...item, [field]: next } : item,
+        )
+        .filter(matchesMode),
+    );
     setBusy(product.id);
 
     const result = await adminFetch(`/api/admin/products/${product.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ [field]: !product[field] }),
+      body: JSON.stringify({ [field]: next }),
     });
 
     setBusy(null);
 
     if (!result.ok) {
-      showToast(errorMessage(result), "info");
+      setProducts(previous);
+      showToast(errorMessage(result), "error");
       return;
     }
 
     showToast("Updated");
-    await refresh();
   }
 
   async function handleDelete(product: AdminProduct) {
@@ -89,6 +93,9 @@ export default function ProductsManager({ mode }: { mode: Mode }) {
       return;
     }
 
+    const previous = products;
+
+    setProducts((current) => current.filter((item) => item.id !== product.id));
     setBusy(product.id);
 
     const result = await adminFetch(`/api/admin/products/${product.id}`, {
@@ -98,12 +105,12 @@ export default function ProductsManager({ mode }: { mode: Mode }) {
     setBusy(null);
 
     if (!result.ok) {
-      showToast(errorMessage(result), "info");
+      setProducts(previous);
+      showToast(errorMessage(result), "error");
       return;
     }
 
     showToast("Product deleted", "info");
-    await refresh();
   }
 
   const heading = headings[mode];
@@ -120,9 +127,18 @@ export default function ProductsManager({ mode }: { mode: Mode }) {
       {editing && (
         <ProductForm
           product={editing}
-          onSaved={async () => {
+          onSaved={(saved) => {
             setEditing(null);
-            await refresh();
+            setProducts((current) => {
+              const exists = current.some((item) => item.id === saved.id);
+              const next = exists
+                ? current.map((item) =>
+                    item.id === saved.id ? saved : item,
+                  )
+                : [saved, ...current];
+
+              return next.filter(matchesMode);
+            });
           }}
           onCancel={() => setEditing(null)}
         />

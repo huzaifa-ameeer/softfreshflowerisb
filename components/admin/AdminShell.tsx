@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { Spinner } from "@/components/admin/Loader";
 import { showToast } from "@/components/Toast";
@@ -10,6 +10,7 @@ import { authClient } from "@/lib/auth-client";
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: DashboardIcon },
   { label: "Categories", href: "/admin/categories", icon: FolderIcon },
+  { label: "Manage Reviews", href: "/admin/reviews", icon: StarIcon },
   { label: "Fresh Products", href: "/admin/fresh-products", icon: LeafIcon },
   {
     label: "Top Selling Products",
@@ -84,6 +85,14 @@ function LeafIcon({ className }: { className?: string }) {
     <svg {...baseIconProps(className)}>
       <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
       <path d="M2 21c0-3 1.85-5.36 5.08-6" />
+    </svg>
+  );
+}
+
+function StarIcon({ className }: { className?: string }) {
+  return (
+    <svg {...baseIconProps(className)}>
+      <path d="M12 3.5l2.6 5.3 5.9.85-4.25 4.15 1 5.85L12 16.9l-5.25 2.75 1-5.85L3.5 9.65l5.9-.85L12 3.5Z" />
     </svg>
   );
 }
@@ -163,6 +172,7 @@ export default function AdminShell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -181,8 +191,9 @@ export default function AdminShell({
   const handleSignOut = async () => {
     setSigningOut(true);
     await authClient.signOut();
-    showToast("Signed out successfully", "info", { persist: true });
-    window.location.replace("/admin/login");
+    showToast("Signed out successfully", "info");
+    router.replace("/admin/login");
+    router.refresh();
   };
 
   return (

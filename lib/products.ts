@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { isValidObjectId } from "mongoose";
 import { connectDB } from "@/lib/db";
 import { CategoryModel } from "@/lib/models/category";
@@ -18,6 +19,34 @@ export type ReviewDTO = {
   date: string;
   title: string;
   body: string;
+  published: boolean;
+  publishedAt: string;
+};
+
+export type AdminReview = {
+  id: string;
+  productId: string;
+  productName: string;
+  productSlug: string;
+  author: string;
+  rating: number;
+  date: string;
+  title: string;
+  body: string;
+  published: boolean;
+  publishedAt: string;
+};
+
+export type PublishedReview = {
+  id: string;
+  author: string;
+  rating: number;
+  date: string;
+  title: string;
+  body: string;
+  productName: string;
+  productSlug: string;
+  productImage: string;
 };
 
 export type ProductDTO = {
@@ -75,6 +104,8 @@ export type ListProductsOptions = {
   limit?: number;
 };
 
+type ReviewRecord = ReviewDTO;
+
 type ProductRecord = {
   _id: unknown;
   slug: string;
@@ -85,7 +116,7 @@ type ProductRecord = {
   description?: string | null;
   images?: ProductImageDTO[] | null;
   highlights?: string[] | null;
-  reviews?: ReviewDTO[] | null;
+  reviews?: ReviewRecord[] | null;
   rating?: number | null;
   isFresh?: boolean | null;
   isTopSelling?: boolean | null;
@@ -108,6 +139,19 @@ function normalizeImages(value: ProductImageDTO[] | null | undefined) {
   }));
 }
 
+function serializeReview(review: ReviewRecord): ReviewDTO {
+  return {
+    id: review.id ?? "",
+    author: review.author ?? "",
+    rating: Number(review.rating) || 0,
+    date: review.date ?? "",
+    title: review.title ?? "",
+    body: review.body ?? "",
+    published: Boolean(review.published),
+    publishedAt: review.publishedAt ?? "",
+  };
+}
+
 export function serializeProduct(record: ProductRecord): ProductDTO {
   const images = normalizeImages(record.images);
 
@@ -122,7 +166,7 @@ export function serializeProduct(record: ProductRecord): ProductDTO {
     image: images[0]?.url ?? "",
     images,
     highlights: record.highlights ?? [],
-    reviews: record.reviews ?? [],
+    reviews: (record.reviews ?? []).map(serializeReview),
     rating: record.rating ?? 0,
     isFresh: Boolean(record.isFresh),
     isTopSelling: Boolean(record.isTopSelling),
@@ -186,16 +230,21 @@ function toReviews(value: unknown): ReviewDTO[] | null {
       date: typeof review.date === "string" ? review.date : "",
       title: typeof review.title === "string" ? review.title : "",
       body: typeof review.body === "string" ? review.body : "",
+      published: Boolean(review.published),
+      publishedAt:
+        typeof review.publishedAt === "string" ? review.publishedAt : "",
     };
   });
 }
 
 function averageRating(reviews: ReviewDTO[]) {
-  if (reviews.length === 0) return 0;
+  const rated = reviews.filter((review) => review.rating > 0);
 
-  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+  if (rated.length === 0) return 0;
 
-  return Math.round((total / reviews.length) * 10) / 10;
+  const total = rated.reduce((sum, review) => sum + review.rating, 0);
+
+  return Math.round((total / rated.length) * 10) / 10;
 }
 
 export function validateProduct(
@@ -525,6 +574,232 @@ export async function deleteProduct(
     .filter(Boolean);
 
   return { ok: true, data: { id: String(record._id), publicIds } };
+}
+
+export type ReviewInput = {
+  name: unknown;
+  message: unknown;
+  rating: unknown;
+};
+
+export async function addProductReview(
+  idOrSlug: string,
+  input: ReviewInput,
+): Promise<ServiceResult<ReviewDTO>> {
+  const name = typeof input.name === "string" ? input.name.trim() : "";
+  const message =
+    typeof input.message === "string" ? input.message.trim() : "";
+  const rating = Number(input.rating);
+
+  if (name.length < 2) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Validation failed",
+      details: { name: "Enter your name" },
+    };
+  }
+
+  if (name.length > 60) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Validation failed",
+      details: { name: "Keep your name under 60 characters" },
+    };
+  }
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Validation failed",
+      details: { rating: "Choose a rating from 1 to 5 stars" },
+    };
+  }
+
+  if (!message) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Validation failed",
+      details: { message: "Required" },
+    };
+  }
+
+  if (message.length < 10) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Validation failed",
+      details: { message: "Write at least 10 characters" },
+    };
+  }
+
+  if (message.length > 1000) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Validation failed",
+      details: { message: "Keep it under 1000 characters" },
+    };
+  }
+
+  const record = await findRecord(idOrSlug);
+
+  if (!record) {
+    return { ok: false, status: 404, error: "Product not found" };
+  }
+
+  const review: ReviewRecord = {
+    id: randomUUID(),
+    author: name,
+    rating,
+    date: new Date().toISOString().slice(0, 10),
+    title: "",
+    body: message,
+    published: false,
+    publishedAt: "",
+  };
+
+  const reviews = [...(record.reviews ?? []), review];
+  const productRating = averageRating(reviews);
+
+  const updated = await ProductModel.findByIdAndUpdate(
+    record._id,
+    { $push: { reviews: review }, $set: { rating: productRating } },
+    { new: true },
+  ).lean();
+
+  if (!updated) {
+    return { ok: false, status: 404, error: "Product not found" };
+  }
+
+  return { ok: true, data: serializeReview(review) };
+}
+
+export async function listAllReviews(): Promise<AdminReview[]> {
+  await connectDB();
+
+  const docs = await ProductModel.find({ "reviews.0": { $exists: true } })
+    .select({ name: 1, slug: 1, reviews: 1 })
+    .lean<
+      {
+        _id: unknown;
+        name: string;
+        slug: string;
+        reviews?: ReviewRecord[] | null;
+      }[]
+    >();
+
+  return docs
+    .flatMap((doc) =>
+      (doc.reviews ?? []).map((review) => ({
+        id: review.id ?? "",
+        productId: String(doc._id),
+        productName: doc.name,
+        productSlug: doc.slug,
+        author: review.author ?? "",
+        rating: Number(review.rating) || 0,
+        date: review.date ?? "",
+        title: review.title ?? "",
+        body: review.body ?? "",
+        published: Boolean(review.published),
+        publishedAt: review.publishedAt ?? "",
+      })),
+    )
+    .sort((left, right) => right.date.localeCompare(left.date));
+}
+
+export async function listPublishedReviews(): Promise<PublishedReview[]> {
+  await connectDB();
+
+  const docs = await ProductModel.find({ "reviews.published": true })
+    .select({ name: 1, slug: 1, images: 1, reviews: 1 })
+    .lean<
+      {
+        name: string;
+        slug: string;
+        images?: ProductImageDTO[] | null;
+        reviews?: ReviewRecord[] | null;
+      }[]
+    >();
+
+  return docs
+    .flatMap((doc) =>
+      (doc.reviews ?? [])
+        .filter((review) => review.published)
+        .map((review) => ({
+          id: review.id ?? "",
+          author: review.author ?? "",
+          rating: Number(review.rating) || 0,
+          date: review.date ?? "",
+          title: review.title ?? "",
+          body: review.body ?? "",
+          productName: doc.name,
+          productSlug: doc.slug,
+          productImage: doc.images?.[0]?.url ?? "",
+        })),
+    )
+    .sort((left, right) => right.date.localeCompare(left.date));
+}
+
+export async function deleteProductReview(
+  productId: string,
+  reviewId: string,
+): Promise<ServiceResult<{ id: string }>> {
+  const record = await findRecord(productId);
+
+  if (!record) {
+    return { ok: false, status: 404, error: "Product not found" };
+  }
+
+  const current = record.reviews ?? [];
+  const reviews = current.filter((review) => review.id !== reviewId);
+
+  if (reviews.length === current.length) {
+    return { ok: false, status: 404, error: "Review not found" };
+  }
+
+  const rating = averageRating(reviews);
+
+  await ProductModel.findByIdAndUpdate(record._id, {
+    $set: { reviews, rating },
+  });
+
+  return { ok: true, data: { id: reviewId } };
+}
+
+export async function setReviewPublished(
+  productId: string,
+  reviewId: string,
+  published: boolean,
+): Promise<ServiceResult<{ id: string; published: boolean; publishedAt: string }>> {
+  const record = await findRecord(productId);
+
+  if (!record) {
+    return { ok: false, status: 404, error: "Product not found" };
+  }
+
+  const review = (record.reviews ?? []).find((item) => item.id === reviewId);
+
+  if (!review) {
+    return { ok: false, status: 404, error: "Review not found" };
+  }
+
+  const publishedAt = published ? new Date().toISOString().slice(0, 10) : "";
+
+  await ProductModel.updateOne(
+    { _id: record._id, "reviews.id": reviewId },
+    {
+      $set: {
+        "reviews.$.published": published,
+        "reviews.$.publishedAt": publishedAt,
+      },
+    },
+  );
+
+  return { ok: true, data: { id: reviewId, published, publishedAt } };
 }
 
 export type ProductSummary = {

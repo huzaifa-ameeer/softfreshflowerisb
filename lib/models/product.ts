@@ -16,6 +16,8 @@ const reviewSchema = new Schema(
     date: { type: String, default: "" },
     title: { type: String, default: "" },
     body: { type: String, default: "" },
+    published: { type: Boolean, default: false },
+    publishedAt: { type: String, default: "" },
   },
   { _id: false, id: false },
 );

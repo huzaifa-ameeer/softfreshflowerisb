@@ -6,12 +6,10 @@ import { useEffect, useState } from "react";
 const AUTO_ADVANCE_MS = 2000;
 
 const slides = [
-  { src: "/1.png", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
-  { src: "/6.png", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
-  { src: "/2.png", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
-  { src: "/3.png", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
-  { src: "/4.png", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
-  { src: "/5.png", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
+  { src: "/1.jpeg", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
+  { src: "/2.jpeg", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
+  { src: "/3.jpeg", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
+  { src: "/4.jpeg", alt: "Seasonal flowers from Soft Fresh Flower ISB" },
 ];
 
 function ChevronIcon({
@@ -37,81 +35,6 @@ function ChevronIcon({
   );
 }
 
-function DrawPath({
-  delay,
-  d,
-  stroke,
-}: {
-  delay: number;
-  d: string;
-  stroke?: string;
-}) {
-  return (
-    <path
-      d={d}
-      stroke={stroke}
-      pathLength={1}
-      strokeDasharray={1}
-      style={{ animationDelay: `${delay}ms` }}
-      className="draw-line"
-    />
-  );
-}
-
-function FlowerSprig({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 64 128"
-      fill="none"
-      stroke="#16a34a"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <DrawPath delay={0} d="M32 128C32 104 32 82 32 60" />
-      <DrawPath delay={180} d="M32 106C20 102 13 90 15 78c13 4 18 17 17 28Z" />
-      <DrawPath delay={300} d="M32 94c12-4 19-16 17-28-13 4-18 17-17 28Z" />
-      <DrawPath
-        delay={460}
-        d="M18 60c0-18 6-32 14-40 8 8 14 22 14 40-6 4-22 4-28 0Z"
-        stroke="#ec4899"
-      />
-      <DrawPath delay={700} d="M32 20v40" stroke="#ec4899" />
-      <DrawPath delay={840} d="M23 32c0 12 2 20 4 26" stroke="#ec4899" />
-      <DrawPath delay={840} d="M41 32c0 12-2 20-4 26" stroke="#ec4899" />
-    </svg>
-  );
-}
-
-function Cake({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 64 80"
-      fill="none"
-      stroke="#831843"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <DrawPath delay={0} d="M4 74h56" />
-      <DrawPath delay={140} d="M10 48h44v26H10Z" />
-      <DrawPath delay={280} d="M10 56h44" stroke="#ec4899" />
-      <DrawPath delay={380} d="M20 30h24v18H20Z" />
-      <DrawPath delay={500} d="M20 37h24" stroke="#ec4899" />
-      <DrawPath delay={620} d="M32 18v12" />
-      <DrawPath
-        delay={720}
-        d="M32 18c-3-3-3-7 0-10 3 3 3 7 0 10Z"
-        stroke="#ec4899"
-      />
-    </svg>
-  );
-}
-
 export default function HeroCarousel() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -132,57 +55,55 @@ export default function HeroCarousel() {
 
   return (
     <section
-      className="relative px-0 py-5 sm:px-6 sm:py-8 lg:px-8"
+      className="relative w-full"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <div className="relative mx-auto w-full max-w-7xl sm:w-[92%] lg:w-[70%]">
-        <div className="relative aspect-video overflow-hidden rounded-2xl bg-pink-100">
-          <div
-            className="flex h-full w-full transition-transform duration-1000 ease-out"
-            style={{ transform: `translateX(-${index * 100}%)` }}
-          >
-            {slides.map((slide, i) => (
-              <div
-                key={slide.src}
-                aria-hidden={i !== index}
-                className="relative h-full w-full shrink-0"
-              >
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  fill
-                  priority={i === 0}
-                  sizes="(max-width: 1280px) 100vw, 1280px"
-                  className="object-cover"
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-md bg-black/40 px-3 py-2 sm:bottom-4">
-            {slides.map((slide, i) => (
-              <button
-                key={slide.src}
-                type="button"
-                onClick={() => setIndex(i)}
-                aria-label={`Show image ${i + 1}`}
-                aria-current={i === index}
-                className={`h-2 rounded-md transition-all ${
-                  i === index ? "w-6 bg-pink-500" : "w-2 bg-white/80 hover:bg-white"
-                }`}
+      <div className="relative aspect-[1600/639] w-full overflow-hidden bg-pink-100">
+        <div
+          className="flex h-full w-full transition-transform duration-1000 ease-out"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {slides.map((slide, i) => (
+            <div
+              key={slide.src}
+              aria-hidden={i !== index}
+              className="relative h-full w-full shrink-0"
+            >
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                fill
+                priority={i === 0}
+                sizes="100vw"
+                className="object-cover object-top"
               />
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-md bg-black/40 px-3 py-2">
+          {slides.map((slide, i) => (
+            <button
+              key={slide.src}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`Show image ${i + 1}`}
+              aria-current={i === index}
+              className={`h-2 cursor-pointer rounded-md transition-all ${
+                i === index ? "w-6 bg-pink-500" : "w-2 bg-white/80 hover:bg-white"
+              }`}
+            />
+          ))}
         </div>
 
         <button
           type="button"
           onClick={() => step(-1)}
           aria-label="Previous image"
-          className="absolute top-1/2 left-3 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-pink-700 shadow-md ring-1 ring-pink-200 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:left-4 sm:size-12 lg:-left-3 lg:-translate-x-full"
+          className="absolute top-1/2 left-4 flex size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-pink-700 shadow-md ring-1 ring-pink-200 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:left-6 sm:size-12"
         >
           <ChevronIcon className="size-5 sm:size-6" direction="left" />
         </button>
@@ -191,26 +112,10 @@ export default function HeroCarousel() {
           type="button"
           onClick={() => step(1)}
           aria-label="Next image"
-          className="absolute top-1/2 right-3 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-pink-700 shadow-md ring-1 ring-pink-200 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:right-4 sm:size-12 lg:-right-3 lg:translate-x-full"
+          className="absolute top-1/2 right-4 flex size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/90 text-pink-700 shadow-md ring-1 ring-pink-200 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:right-6 sm:size-12"
         >
           <ChevronIcon className="size-5 sm:size-6" direction="right" />
         </button>
-      </div>
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-5 left-2 hidden items-end gap-2 lg:bottom-8 lg:left-4 lg:flex xl:left-8"
-      >
-        <FlowerSprig className="h-20 w-auto xl:h-28" />
-        <FlowerSprig className="h-28 w-auto -rotate-6 xl:h-36" />
-      </div>
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-5 right-2 hidden items-end gap-2 lg:bottom-8 lg:right-4 lg:flex xl:right-8"
-      >
-        <Cake className="h-20 w-auto xl:h-28" />
-        <FlowerSprig className="h-28 w-auto rotate-6 xl:h-36" />
       </div>
     </section>
   );

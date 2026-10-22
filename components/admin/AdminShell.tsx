@@ -9,6 +9,7 @@ import { authClient } from "@/lib/auth-client";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: DashboardIcon },
+  { label: "Categories", href: "/admin/categories", icon: FolderIcon },
   { label: "Fresh Products", href: "/admin/fresh-products", icon: LeafIcon },
   {
     label: "Top Selling Products",
@@ -66,6 +67,14 @@ function DashboardIcon({ className }: { className?: string }) {
       <rect x="14" y="3" width="7" height="7" rx="1.5" />
       <rect x="3" y="14" width="7" height="7" rx="1.5" />
       <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+function FolderIcon({ className }: { className?: string }) {
+  return (
+    <svg {...baseIconProps(className)}>
+      <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
     </svg>
   );
 }

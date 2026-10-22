@@ -1,24 +1,15 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import type { ReactNode } from "react";
-import AdminShell from "@/components/admin/AdminShell";
-import { getAuth } from "@/lib/auth";
+import { Suspense, type ReactNode } from "react";
+import Loader from "@/components/admin/Loader";
+import AdminPanelShell from "@/components/admin/AdminPanelShell";
 
-export const instant = false;
-
-export default async function AdminPanelLayout({
+export default function AdminPanelLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const auth = await getAuth();
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  if (!session) redirect("/admin/login");
-
   return (
-    <AdminShell user={{ name: session.user.name, email: session.user.email }}>
-      {children}
-    </AdminShell>
+    <Suspense fallback={<Loader label="Loading" />}>
+      <AdminPanelShell>{children}</AdminPanelShell>
+    </Suspense>
   );
 }

@@ -18,8 +18,8 @@ function SearchIcon({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
     </svg>
   );
 }
@@ -27,17 +27,20 @@ function SearchIcon({ className }: { className?: string }) {
 type SearchBarProps = {
   className?: string;
   inline?: boolean;
+  autoFocus?: boolean;
   onNavigate?: () => void;
 };
 
 export default function SearchBar({
   className = "",
   inline = false,
+  autoFocus = false,
   onNavigate,
 }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const term = query.trim().toLowerCase();
   const matches = term
@@ -59,6 +62,10 @@ export default function SearchBar({
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [inline]);
 
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
+
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
       setOpen(false);
@@ -79,6 +86,7 @@ export default function SearchBar({
       <div className="relative">
         <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400" />
         <input
+          ref={inputRef}
           type="search"
           value={query}
           onChange={(event) => {

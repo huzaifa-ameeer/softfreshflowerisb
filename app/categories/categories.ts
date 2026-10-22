@@ -38,7 +38,7 @@ export const categories: Category[] = [
     icon: "🌸",
     count: 24,
     tone: "rose",
-    products: ["Red Roses", "Tulip Bunch", "Gerbera Mix"],
+    products: ["Red Roses", "Tulip Bunch", "Gerbera Mix", "Orchid Bunch"],
   },
   {
     slug: "bouquets",
@@ -62,7 +62,7 @@ export const categories: Category[] = [
     icon: "📿",
     count: 9,
     tone: "orange",
-    products: ["Jasmine Gajra", "Rose Gajra", "Marigold Gajra"],
+    products: ["Jasmine Gajra", "Rose Gajra", "Marigold Gajra", "Mogra Gajra"],
   },
   {
     slug: "blessings",
@@ -70,7 +70,7 @@ export const categories: Category[] = [
     icon: "🙏",
     count: 7,
     tone: "sky",
-    products: ["Blessing Bouquet", "Prayer Posy", "Gift Hamper"],
+    products: ["Blessing Bouquet", "Prayer Posy", "Gift Hamper", "Eid Blessing Box"],
   },
   {
     slug: "balloons",
@@ -78,7 +78,7 @@ export const categories: Category[] = [
     icon: "🎈",
     count: 15,
     tone: "fuchsia",
-    products: ["Heart Balloons", "Balloon Arch", "Party Pack"],
+    products: ["Heart Balloons", "Balloon Arch", "Party Pack", "Number Balloons"],
   },
   {
     slug: "chocolates",
@@ -94,7 +94,7 @@ export const categories: Category[] = [
     icon: "💌",
     count: 8,
     tone: "teal",
-    products: ["Birthday Card", "Message Card", "Gift Tag"],
+    products: ["Birthday Card", "Message Card", "Gift Tag", "Thank You Card"],
   },
   {
     slug: "flower-jewelry",

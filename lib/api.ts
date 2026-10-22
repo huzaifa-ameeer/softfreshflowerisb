@@ -19,6 +19,15 @@ export async function withAdmin(
 
     return await handler();
   } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "digest" in error &&
+      error.digest === "NEXT_PRERENDER_INTERRUPTED"
+    ) {
+      throw error;
+    }
+
     console.error("[admin api]", error);
 
     return jsonError(500, "Something went wrong.");

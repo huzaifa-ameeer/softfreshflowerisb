@@ -106,6 +106,34 @@ export function getCategory(slug: string) {
   return categories.find((category) => category.slug === slug);
 }
 
+export type Product = {
+  slug: string;
+  name: string;
+  categorySlug: string;
+  categoryName: string;
+};
+
+export function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export const allProducts: Product[] = categories.flatMap((category) =>
+  category.products.map((name) => ({
+    slug: slugify(name),
+    name,
+    categorySlug: category.slug,
+    categoryName: category.name,
+  })),
+);
+
+export function getProduct(slug: string) {
+  return allProducts.find((product) => product.slug === slug);
+}
+
 export const categoryTones: Record<CategoryTone, ToneStyle> = {
   rose: {
     card: "bg-rose-50 ring-rose-200 hover:shadow-rose-200/70 hover:ring-rose-300",

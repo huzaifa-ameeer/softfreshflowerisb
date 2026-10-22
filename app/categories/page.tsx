@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { categoryTones, type CategoryTone } from "./categories";
+import { LinkPendingOverlay } from "@/components/LinkPending";
 import { listCategoriesForSite } from "@/lib/categories";
-
-export const instant = false;
 
 function toneFor(tone: string) {
   return categoryTones[tone as CategoryTone] ?? categoryTones.rose;
@@ -53,8 +52,9 @@ export default async function CategoriesPage() {
               <li key={category.slug}>
                 <Link
                   href={`/categories/${category.slug}`}
-                  className={`group flex h-full flex-col gap-4 rounded-2xl p-5 ring-1 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 ${tone.card}`}
+                  className={`group relative flex h-full flex-col gap-4 rounded-2xl p-5 ring-1 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 ${tone.card}`}
                 >
+                  <LinkPendingOverlay />
                   <div className="flex items-center gap-3">
                     <span
                       aria-hidden="true"

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { LinkPendingSpinner } from "@/components/LinkPending";
 import { useFavourites } from "@/lib/favourites-store";
 
 export default function FavouritesPage() {
@@ -38,6 +39,7 @@ export default function FavouritesPage() {
             className="inline-flex items-center justify-center gap-2 rounded-md bg-pink-500 px-6 py-3 text-base font-semibold text-black transition-colors hover:bg-pink-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
           >
             Browse categories
+            <LinkPendingSpinner className="size-4" />
           </Link>
         </div>
       ) : (

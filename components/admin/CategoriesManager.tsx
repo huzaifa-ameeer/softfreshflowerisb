@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { showToast } from "@/components/Toast";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { Spinner } from "@/components/admin/Loader";
@@ -58,17 +58,6 @@ export default function CategoriesManager() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
 
-  const refresh = useCallback(async () => {
-    const result = await adminFetch<{ categories: Category[] }>(
-      "/api/admin/categories",
-    );
-
-    if (result.ok) {
-      setCategories(result.data.categories ?? []);
-      setError(null);
-    }
-  }, []);
-
   useEffect(() => {
     void (async () => {
       const result = await adminFetch<{ categories: Category[] }>(
@@ -112,49 +101,62 @@ export default function CategoriesManager() {
 
     const result =
       editing === "new"
-        ? await adminFetch("/api/admin/categories", {
+        ? await adminFetch<{ category: Category }>("/api/admin/categories", {
             method: "POST",
             headers,
             body,
           })
-        : await adminFetch(`/api/admin/categories/${editing}`, {
-            method: "PATCH",
-            headers,
-            body,
-          });
+        : await adminFetch<{ category: Category }>(
+            `/api/admin/categories/${editing}`,
+            { method: "PATCH", headers, body },
+          );
 
     setSaving(false);
 
     if (!result.ok) {
-      showToast(errorMessage(result), "info");
+      showToast(errorMessage(result), "error");
       return;
     }
 
+    const saved = result.data.category;
+
+    setCategories((current) => {
+      const exists = current.some((category) => category.id === saved.id);
+
+      return exists
+        ? current.map((category) =>
+            category.id === saved.id ? saved : category,
+          )
+        : [saved, ...current];
+    });
     showToast(editing === "new" ? "Category created" : "Category updated");
     setEditing(null);
     setDraft(emptyDraft);
-    await refresh();
   }
 
   async function handleDelete() {
     if (!pendingDelete) return;
 
-    setDeleting(pendingDelete.id);
+    const target = pendingDelete;
 
-    const result = await adminFetch(`/api/admin/categories/${pendingDelete.id}`, {
+    setDeleting(target.id);
+
+    const result = await adminFetch(`/api/admin/categories/${target.id}`, {
       method: "DELETE",
     });
 
     setDeleting(null);
 
     if (!result.ok) {
-      showToast(errorMessage(result), "info");
+      showToast(errorMessage(result), "error");
       return;
     }
 
+    setCategories((current) =>
+      current.filter((category) => category.id !== target.id),
+    );
     showToast("Category deleted", "info");
     setPendingDelete(null);
-    await refresh();
   }
 
   return (

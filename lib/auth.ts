@@ -27,5 +27,11 @@ async function createAuth() {
     emailAndPassword: {
       enabled: true,
     },
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60,
+      },
+    },
   });
 }

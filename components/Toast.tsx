@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type ToastTone = "success" | "info";
+type ToastTone = "success" | "info" | "error";
 
 type Toast = {
   message: string;
@@ -14,8 +14,8 @@ type Listener = (toast: Toast) => void;
 let listeners: Listener[] = [];
 
 const STORAGE_KEY = "softfreshflower:toast";
-const TOAST_MS = 3200;
-const EXIT_MS = 300;
+const TOAST_MS = 3600;
+const EXIT_MS = 500;
 
 const toneStyles: Record<ToastTone, { card: string; icon: string }> = {
   success: {
@@ -25,6 +25,10 @@ const toneStyles: Record<ToastTone, { card: string; icon: string }> = {
   info: {
     card: "border-pink-200 border-l-pink-500",
     icon: "bg-pink-100 text-pink-700",
+  },
+  error: {
+    card: "border-red-200 border-l-red-500",
+    icon: "bg-red-100 text-red-700",
   },
 };
 
@@ -41,6 +45,25 @@ function CheckIcon({ className }: { className?: string }) {
       aria-hidden="true"
     >
       <path d="M20 6L9 17l-5-5" />
+    </svg>
+  );
+}
+
+function AlertIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 8v5" />
+      <path d="M12 17h.01" />
+      <circle cx="12" cy="12" r="9" />
     </svg>
   );
 }
@@ -102,11 +125,21 @@ function readPendingToast(): Toast | null {
 export function ToastHost() {
   const [toast, setToast] = useState<Toast | null>(null);
   const [visible, setVisible] = useState(false);
+  const frames = useRef<number[]>([]);
 
   useEffect(() => {
     const listener: Listener = (next) => {
+      frames.current.forEach((frame) => cancelAnimationFrame(frame));
+
       setToast(next);
-      setVisible(true);
+      setVisible(false);
+
+      const first = requestAnimationFrame(() => {
+        const second = requestAnimationFrame(() => setVisible(true));
+        frames.current = [second];
+      });
+
+      frames.current = [first];
     };
 
     listeners.push(listener);
@@ -116,6 +149,7 @@ export function ToastHost() {
 
     return () => {
       listeners = listeners.filter((entry) => entry !== listener);
+      frames.current.forEach((frame) => cancelAnimationFrame(frame));
     };
   }, []);
 
@@ -142,8 +176,10 @@ export function ToastHost() {
       <div
         role="status"
         aria-live="polite"
-        className={`pointer-events-auto flex items-center gap-3 rounded-xl border border-l-4 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5 transition-all duration-300 ease-out motion-reduce:transition-none ${tone.card} ${
-          visible ? "translate-y-0 opacity-100" : "-translate-y-10 opacity-0"
+        className={`pointer-events-auto flex max-w-full items-center gap-3 rounded-xl border border-l-4 bg-white px-4 py-3 shadow-lg ring-1 ring-black/5 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform motion-reduce:transition-none ${tone.card} ${
+          visible
+            ? "translate-y-0 scale-100 opacity-100"
+            : "-translate-y-16 scale-95 opacity-0"
         }`}
       >
         <span
@@ -151,6 +187,8 @@ export function ToastHost() {
         >
           {toast.tone === "success" ? (
             <CheckIcon className="size-4" />
+          ) : toast.tone === "error" ? (
+            <AlertIcon className="size-4" />
           ) : (
             <SignOutIcon className="size-4" />
           )}

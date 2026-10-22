@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { showToast } from "@/components/Toast";
 import { authClient } from "@/lib/auth-client";
@@ -26,6 +27,7 @@ function FlowerIcon({ className }: { className?: string }) {
 }
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [unlocked, setUnlocked] = useState(false);
@@ -60,8 +62,9 @@ export default function AdminLoginPage() {
       return;
     }
 
-    showToast("Logged in successfully", "success", { persist: true });
-    window.location.replace("/admin");
+    showToast("Logged in successfully");
+    router.replace("/admin");
+    router.refresh();
   }
 
   function handleFocus() {

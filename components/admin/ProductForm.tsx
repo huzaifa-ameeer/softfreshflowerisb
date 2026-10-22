@@ -36,6 +36,29 @@ type Category = {
 };
 
 const MAX_IMAGES = 3;
+const CATEGORY_CACHE_MS = 60_000;
+
+let categoriesCache: { list: Category[]; at: number } | null = null;
+
+async function loadCategories() {
+  if (
+    categoriesCache &&
+    Date.now() - categoriesCache.at < CATEGORY_CACHE_MS
+  ) {
+    return categoriesCache.list;
+  }
+
+  const result = await adminFetch<{ categories: Category[] }>(
+    "/api/admin/categories",
+  );
+
+  if (!result.ok) return null;
+
+  const list = result.data.categories ?? [];
+  categoriesCache = { list, at: Date.now() };
+
+  return list;
+}
 
 const inputClass =
   "w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
@@ -55,7 +78,7 @@ export default function ProductForm({
   onCancel,
 }: {
   product?: AdminProduct | null;
-  onSaved?: () => void;
+  onSaved?: (product: AdminProduct) => void;
   onCancel?: () => void;
 }) {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -74,12 +97,9 @@ export default function ProductForm({
 
   useEffect(() => {
     void (async () => {
-      const result = await adminFetch<{ categories: Category[] }>(
-        "/api/admin/categories",
-      );
+      const list = await loadCategories();
 
-      if (result.ok) {
-        const list = result.data.categories ?? [];
+      if (list) {
         setCategories(list);
         setCategory((current) => current || list[0]?.slug || "");
       }
@@ -110,7 +130,7 @@ export default function ProductForm({
     if (fileRef.current) fileRef.current.value = "";
 
     if (!result.ok) {
-      showToast(errorMessage(result), "info");
+      showToast(errorMessage(result), "error");
       return;
     }
 
@@ -137,12 +157,11 @@ export default function ProductForm({
     const body = JSON.stringify(payload);
 
     const result = product
-      ? await adminFetch(`/api/admin/products/${product.id}`, {
-          method: "PATCH",
-          headers,
-          body,
-        })
-      : await adminFetch("/api/admin/products", {
+      ? await adminFetch<{ product: AdminProduct }>(
+          `/api/admin/products/${product.id}`,
+          { method: "PATCH", headers, body },
+        )
+      : await adminFetch<{ product: AdminProduct }>("/api/admin/products", {
           method: "POST",
           headers,
           body,
@@ -151,12 +170,12 @@ export default function ProductForm({
     setSaving(false);
 
     if (!result.ok) {
-      showToast(errorMessage(result), "info");
+      showToast(errorMessage(result), "error");
       return;
     }
 
     showToast(product ? "Product updated" : "Product created");
-    onSaved?.();
+    onSaved?.(result.data.product);
   }
 
   return (

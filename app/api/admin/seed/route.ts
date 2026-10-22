@@ -12,6 +12,28 @@ const FRESH_SLUGS = [
   "chocolate-bloom-box",
 ];
 
+const PHOTOS = {
+  bouquet:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Rose_Flower_Bouquet_052.JPG/960px-Rose_Flower_Bouquet_052.JPG",
+  cake: "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Cake_Flowers.jpg/960px-Cake_Flowers.jpg",
+  garland:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/Jasmine_Garland.jpg/960px-Jasmine_Garland.jpg",
+  chocolate:
+    "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/Assorted_Chocolate_Collection.jpg/960px-Assorted_Chocolate_Collection.jpg",
+};
+
+const CATEGORY_PHOTOS: Record<string, string[]> = {
+  "fresh-flowers": [PHOTOS.bouquet],
+  bouquets: [PHOTOS.bouquet],
+  "flower-cakes": [PHOTOS.cake],
+  gajray: [PHOTOS.garland],
+  blessings: [PHOTOS.garland],
+  balloons: [PHOTOS.bouquet],
+  chocolates: [PHOTOS.chocolate],
+  "birthday-cards": [PHOTOS.bouquet],
+  "flower-jewelry": [PHOTOS.garland],
+};
+
 export async function POST(request: Request) {
   return withAdmin(request, async () => {
     await connectDB();
@@ -47,9 +69,15 @@ export async function POST(request: Request) {
               categoryName: product.categoryName,
               price: product.price,
               description: product.description,
-              images: product.images.map((url) => ({ url, publicId: "" })),
+              images: (
+                CATEGORY_PHOTOS[product.categorySlug] ?? [PHOTOS.bouquet]
+              ).map((url) => ({ url, publicId: "" })),
               highlights: product.highlights,
-              reviews: product.reviews,
+              reviews: product.reviews.map((review) => ({
+                ...review,
+                published: true,
+                publishedAt: review.date,
+              })),
               rating: product.rating,
               isFresh: FRESH_SLUGS.includes(product.slug),
             },

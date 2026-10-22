@@ -1,10 +1,5 @@
-import ComingSoon from "@/components/admin/ComingSoon";
+import ProductsManager from "@/components/admin/ProductsManager";
 
 export default function AdminTopSellingProductsPage() {
-  return (
-    <ComingSoon
-      title="Top Selling Products"
-      description="Choose which products to feature as top sellers."
-    />
-  );
+  return <ProductsManager mode="top" />;
 }

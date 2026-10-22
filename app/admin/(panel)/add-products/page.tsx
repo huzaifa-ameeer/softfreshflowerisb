@@ -1,10 +1,5 @@
-import ComingSoon from "@/components/admin/ComingSoon";
+import AddProductPanel from "@/components/admin/AddProductPanel";
 
 export default function AdminAddProductsPage() {
-  return (
-    <ComingSoon
-      title="Add Products"
-      description="Create new products with images, price and details."
-    />
-  );
+  return <AddProductPanel />;
 }

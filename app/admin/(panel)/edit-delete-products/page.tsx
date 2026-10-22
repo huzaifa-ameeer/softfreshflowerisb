@@ -1,10 +1,5 @@
-import ComingSoon from "@/components/admin/ComingSoon";
+import ProductsManager from "@/components/admin/ProductsManager";
 
 export default function AdminEditDeleteProductsPage() {
-  return (
-    <ComingSoon
-      title="Edit/Delete Products"
-      description="Update or remove existing products from the catalog."
-    />
-  );
+  return <ProductsManager mode="all" />;
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
+import { useFavourites } from "@/lib/favourites-store";
 import {
   useEffect,
   useRef,
@@ -139,6 +140,7 @@ function MenuIcon({ isOpen }: { isOpen: boolean }) {
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const favouriteCount = useFavourites((state) => state.items.length);
   const pathname = usePathname();
   const isDesktop = useSyncExternalStore(
     subscribeToDesktop,
@@ -278,11 +280,16 @@ export default function Navbar() {
           <SearchBar className="hidden xl:block xl:w-44 2xl:w-60" />
 
           <Link
-            href="/favourites"
-            aria-label="Favourites"
-            className={`${iconButtonClass} hidden xl:inline-flex`}
+            href="/fav"
+            aria-label={`Favourites (${favouriteCount})`}
+            className={`${iconButtonClass} relative hidden xl:inline-flex`}
           >
             <HeartIcon className="size-5" />
+            {favouriteCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-pink-500 px-1 text-[10px] leading-4 font-bold text-black">
+                {favouriteCount}
+              </span>
+            )}
           </Link>
 
           <button

@@ -7,8 +7,6 @@ import { getProduct } from "@/lib/products";
 
 const WHATSAPP_NUMBER = "923188989545";
 
-export const instant = false;
-
 function whatsappHref(name: string) {
   const message = `Hi there! I would like to order:\n\nProduct: ${name}`;
 

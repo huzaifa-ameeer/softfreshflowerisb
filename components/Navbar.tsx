@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
+import { LinkPendingSpinner } from "@/components/LinkPending";
 import { useFavourites } from "@/lib/favourites-store";
 import {
   useEffect,
@@ -53,7 +54,7 @@ const iconButtonClass =
   "inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:size-11";
 
 const mobileLinkBase =
-  "rounded-md px-4 py-3.5 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
+  "inline-flex items-center gap-2 rounded-md px-4 py-3.5 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
 const mobileLinkIdle = `${mobileLinkBase} text-neutral-700 hover:bg-pink-200 hover:text-black`;
 
@@ -288,6 +289,7 @@ export default function Navbar() {
                 className={active ? linkActive : linkIdle}
               >
                 {link.label}
+                <LinkPendingSpinner className="absolute top-1 right-0.5 size-2.5" />
               </Link>
             );
           })}
@@ -378,6 +380,7 @@ export default function Navbar() {
                   className={active ? mobileLinkActive : mobileLinkIdle}
                 >
                   {link.label}
+                  <LinkPendingSpinner className="size-4" />
                 </Link>
               );
             })}

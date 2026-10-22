@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import { LinkPendingSpinner } from "@/components/LinkPending";
 import { listPublishedReviews } from "@/lib/products";
-
-export const instant = false;
 
 function formatDate(value: string) {
   if (!value) return "";
@@ -100,9 +99,10 @@ export default async function ReviewsPage() {
           </p>
           <Link
             href="/categories"
-            className="inline-flex items-center rounded-md bg-pink-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-pink-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
+            className="inline-flex items-center gap-2 rounded-md bg-pink-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-pink-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
           >
             Browse products
+            <LinkPendingSpinner className="size-3.5" />
           </Link>
         </div>
       ) : (
@@ -138,9 +138,10 @@ export default async function ReviewsPage() {
                 </span>
                 <Link
                   href={`/products/${review.productSlug}`}
-                  className="text-xs font-semibold text-pink-700 hover:underline"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-pink-700 hover:underline"
                 >
                   {review.productName}
+                  <LinkPendingSpinner className="size-3" />
                 </Link>
               </div>
             </li>

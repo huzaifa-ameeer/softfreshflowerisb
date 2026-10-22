@@ -1,5 +1,6 @@
 import Link from "next/link";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import { LinkPendingSpinner } from "@/components/LinkPending";
 
 const WHATSAPP_NUMBER = "923188989545";
 const WHATSAPP_HREF = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
@@ -110,9 +111,10 @@ export default function Footer() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-neutral-600 transition-colors hover:text-pink-700"
+                  className="inline-flex items-center gap-1.5 text-neutral-600 transition-colors hover:text-pink-700"
                 >
                   {link.label}
+                  <LinkPendingSpinner className="size-3" />
                 </Link>
               </li>
             ))}
@@ -128,9 +130,10 @@ export default function Footer() {
               <li key={link.href}>
                 <Link
                   href={link.href}
-                  className="text-neutral-600 transition-colors hover:text-pink-700"
+                  className="inline-flex items-center gap-1.5 text-neutral-600 transition-colors hover:text-pink-700"
                 >
                   {link.label}
+                  <LinkPendingSpinner className="size-3" />
                 </Link>
               </li>
             ))}

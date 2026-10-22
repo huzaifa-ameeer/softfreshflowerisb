@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { categoryTones, type CategoryTone } from "@/app/categories/categories";
+import { LinkPendingOverlay, LinkPendingSwap } from "@/components/LinkPending";
 import { listCategoriesForSite } from "@/lib/categories";
 
 function toneFor(tone: string) {
@@ -30,8 +31,9 @@ export default async function CategoryStrip() {
             <li key={category.slug}>
               <Link
                 href={`/categories/${category.slug}`}
-                className={`group flex h-full flex-col items-center gap-3 rounded-2xl p-5 text-center ring-1 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 ${tone.card}`}
+                className={`group relative flex h-full flex-col items-center gap-3 rounded-2xl p-5 text-center ring-1 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 ${tone.card}`}
               >
+                <LinkPendingOverlay />
                 <span
                   aria-hidden="true"
                   className={`flex size-12 shrink-0 items-center justify-center rounded-xl text-2xl ${tone.icon}`}
@@ -60,18 +62,20 @@ export default async function CategoryStrip() {
           className="inline-flex items-center gap-2 rounded-md bg-pink-500 px-6 py-3 text-base font-semibold text-black transition-colors hover:bg-pink-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
         >
           Explore all categories
-          <svg
-            className="size-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M9 5l7 7-7 7" />
-          </svg>
+          <LinkPendingSwap className="size-5">
+            <svg
+              className="size-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </LinkPendingSwap>
         </Link>
       </div>
     </section>

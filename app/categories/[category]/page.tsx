@@ -6,8 +6,6 @@ import { categoryTones, type CategoryTone } from "../categories";
 import { getCategory } from "@/lib/categories";
 import { listProductsByCategory } from "@/lib/products";
 
-export const instant = false;
-
 function toneFor(tone: string) {
   return categoryTones[tone as CategoryTone] ?? categoryTones.rose;
 }

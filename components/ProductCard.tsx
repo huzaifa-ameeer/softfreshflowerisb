@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import FavouriteButton from "@/components/FavouriteButton";
+import { LinkPendingOverlay } from "@/components/LinkPending";
 
 const WHATSAPP_NUMBER = "923188989545";
 
@@ -43,7 +44,9 @@ export default function ProductCard({ product }: { product: ProductCardData }) {
         href={`/products/${product.slug}`}
         aria-label={`View ${product.name}`}
         className="absolute inset-0 z-10 cursor-pointer rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
-      />
+      >
+        <LinkPendingOverlay />
+      </Link>
       <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={product.image}

@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { categories, categoryTones } from "./categories";
+import { connection } from "next/server";
+import { categoryTones, type CategoryTone } from "./categories";
+import { listCategoriesForSite } from "@/lib/categories";
+
+export const instant = false;
+
+function toneFor(tone: string) {
+  return categoryTones[tone as CategoryTone] ?? categoryTones.rose;
+}
 
 function ChevronRightIcon({ className }: { className?: string }) {
   return (
@@ -18,7 +26,11 @@ function ChevronRightIcon({ className }: { className?: string }) {
   );
 }
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  await connection();
+
+  const categories = await listCategoriesForSite();
+
   return (
     <main className="mx-auto w-full max-w-7xl px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-14 lg:px-8">
       <header className="flex flex-col gap-2">
@@ -30,59 +42,63 @@ export default function CategoriesPage() {
         </p>
       </header>
 
-      <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
-        {categories.map((category) => {
-          const tone = categoryTones[category.tone];
+      {categories.length === 0 ? (
+        <p className="mt-8 text-base text-neutral-600">No categories yet.</p>
+      ) : (
+        <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
+          {categories.map((category) => {
+            const tone = toneFor(category.tone);
 
-          return (
-            <li key={category.slug}>
-              <Link
-                href={`/categories/${category.slug}`}
-                className={`group flex h-full flex-col gap-4 rounded-2xl p-5 ring-1 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 ${tone.card}`}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    aria-hidden="true"
-                    className={`flex size-11 shrink-0 items-center justify-center rounded-xl text-xl ${tone.icon}`}
-                  >
-                    {category.icon}
-                  </span>
-                  <div className="min-w-0">
-                    <h2
-                      className={`truncate text-lg font-semibold ${tone.title}`}
-                    >
-                      {category.name}
-                    </h2>
-                    <p className={`text-sm font-medium ${tone.text}`}>
-                      {category.count} products
-                    </p>
-                  </div>
-                </div>
-
-                <ul className="flex flex-wrap gap-2">
-                  {category.products.map((product, index) => (
-                    <li
-                      key={product}
-                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                        tone.badges[index % tone.badges.length]
-                      }`}
-                    >
-                      {product}
-                    </li>
-                  ))}
-                </ul>
-
-                <span
-                  className={`mt-auto inline-flex items-center gap-1 text-sm font-semibold ${tone.text}`}
+            return (
+              <li key={category.slug}>
+                <Link
+                  href={`/categories/${category.slug}`}
+                  className={`group flex h-full flex-col gap-4 rounded-2xl p-5 ring-1 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 ${tone.card}`}
                 >
-                  Browse category
-                  <ChevronRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+                  <div className="flex items-center gap-3">
+                    <span
+                      aria-hidden="true"
+                      className={`flex size-11 shrink-0 items-center justify-center rounded-xl text-xl ${tone.icon}`}
+                    >
+                      {category.icon}
+                    </span>
+                    <div className="min-w-0">
+                      <h2
+                        className={`truncate text-lg font-semibold ${tone.title}`}
+                      >
+                        {category.name}
+                      </h2>
+                      <p className={`text-sm font-medium ${tone.text}`}>
+                        {category.count} products
+                      </p>
+                    </div>
+                  </div>
+
+                  <ul className="flex flex-wrap gap-2">
+                    {category.samples.map((sample, index) => (
+                      <li
+                        key={sample}
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                          tone.badges[index % tone.badges.length]
+                        }`}
+                      >
+                        {sample}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <span
+                    className={`mt-auto inline-flex items-center gap-1 text-sm font-semibold ${tone.text}`}
+                  >
+                    Browse category
+                    <ChevronRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </main>
   );
 }

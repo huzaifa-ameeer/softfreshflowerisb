@@ -1,27 +1,28 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import ProductCard from "@/components/ProductCard";
-import { productDetails } from "@/app/products/products";
-import { categories, categoryTones, getCategory } from "../categories";
+import { categoryTones, type CategoryTone } from "../categories";
+import { getCategory } from "@/lib/categories";
+import { listProductsByCategory } from "@/lib/products";
 
 export const instant = false;
 
-export function generateStaticParams() {
-  return categories.map((category) => ({ category: category.slug }));
+function toneFor(tone: string) {
+  return categoryTones[tone as CategoryTone] ?? categoryTones.rose;
 }
 
 export default async function CategoryPage({
   params,
 }: PageProps<"/categories/[category]">) {
   const { category: slug } = await params;
-  const category = getCategory(slug);
+  await connection();
+  const category = await getCategory(slug);
 
   if (!category) notFound();
 
-  const tone = categoryTones[category.tone];
-  const products = productDetails.filter(
-    (product) => product.categorySlug === category.slug,
-  );
+  const products = await listProductsByCategory(category.slug);
+  const tone = toneFor(category.tone);
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -72,9 +73,9 @@ export default async function CategoryPage({
                 product={{
                   slug: product.slug,
                   name: product.name,
-                  category: product.categoryName,
+                  category: product.categoryName || category.name,
                   description: product.description,
-                  image: product.images[0],
+                  image: product.image,
                   price: product.price,
                 }}
               />

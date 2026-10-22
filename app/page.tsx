@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CategoryStrip from "@/components/CategoryStrip";
 import { connection } from "next/server";
 import FeatureStrip from "@/components/FeatureStrip";
 import FeaturedProducts from "@/components/FeaturedProducts";
@@ -13,18 +14,13 @@ export default async function Home() {
     <main className="flex flex-1 flex-col">
       <HeroCarousel />
 
-      <FeatureStrip />
-
-      <FeaturedProducts />
-
-      <div className="flex justify-center px-4 pt-2 pb-14 sm:pt-4 sm:pb-16">
+      <section className="mx-auto flex w-full max-w-7xl justify-center px-4 pt-6 sm:px-6 sm:pt-8 lg:px-8">
         <Link
-          href="/categories"
-          className="inline-flex items-center gap-2 rounded-md bg-pink-500 px-6 py-3 text-base font-semibold text-black transition-colors hover:bg-pink-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
+          href="/most-selling-products"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-pink-500 px-8 py-3.5 text-base font-semibold text-black transition-colors hover:bg-pink-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:w-auto"
         >
-          Explore all categories
+          Top Selling Products
           <svg
-            className="size-5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -32,11 +28,18 @@ export default async function Home() {
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
+            className="size-4"
           >
-            <path d="M9 5l7 7-7 7" />
+            <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
         </Link>
-      </div>
+      </section>
+
+      <FeatureStrip />
+
+      <FeaturedProducts />
+
+      <CategoryStrip />
     </main>
   );
 }

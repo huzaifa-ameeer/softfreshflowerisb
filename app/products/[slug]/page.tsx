@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import ProductGallery from "@/components/ProductGallery";
+import ReviewForm from "@/components/ReviewForm";
 import { getProduct } from "@/lib/products";
 
 const WHATSAPP_NUMBER = "923188989545";
@@ -137,7 +138,7 @@ export default async function ProductPage({
             <h1 className="text-3xl font-bold tracking-tight text-pink-700 sm:text-4xl">
               {product.name}
             </h1>
-            {product.reviews.length > 0 && (
+            {product.rating > 0 && (
               <div className="flex items-center gap-2">
                 <Stars rating={product.rating} />
                 <span className="text-sm text-neutral-600">
@@ -187,11 +188,12 @@ export default async function ProductPage({
         </div>
       </div>
 
-      {product.reviews.length > 0 && (
-        <section className="mt-12 border-t border-pink-200 pt-8">
-          <h2 className="text-2xl font-bold tracking-tight text-pink-700">
-            Customer reviews
-          </h2>
+      <section className="mt-12 border-t border-pink-200 pt-8">
+        <h2 className="text-2xl font-bold tracking-tight text-pink-700">
+          Customer reviews
+        </h2>
+
+        {product.rating > 0 && (
           <div className="mt-3 flex items-center gap-3">
             <Stars rating={product.rating} />
             <span className="text-sm font-medium text-neutral-700">
@@ -201,7 +203,9 @@ export default async function ProductPage({
               · {product.reviews.length} reviews
             </span>
           </div>
+        )}
 
+        {product.reviews.length > 0 ? (
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {product.reviews.map((review, index) => (
               <li
@@ -209,7 +213,11 @@ export default async function ProductPage({
                 className="flex flex-col gap-2 rounded-2xl bg-white/70 p-5 ring-1 ring-pink-200"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <Stars rating={review.rating} />
+                  {review.rating > 0 ? (
+                    <Stars rating={review.rating} />
+                  ) : (
+                    <span />
+                  )}
                   <time
                     dateTime={review.date}
                     className="text-xs text-neutral-500"
@@ -217,18 +225,28 @@ export default async function ProductPage({
                     {formatDate(review.date)}
                   </time>
                 </div>
-                <h3 className="text-sm font-semibold text-pink-900">
-                  {review.title}
-                </h3>
-                <p className="text-sm text-neutral-600">{review.body}</p>
+                {review.title && (
+                  <h3 className="text-sm font-semibold text-pink-900">
+                    {review.title}
+                  </h3>
+                )}
+                <p className="text-sm whitespace-pre-line text-neutral-600">
+                  {review.body}
+                </p>
                 <p className="mt-auto text-xs font-medium text-neutral-500">
                   — {review.author}
                 </p>
               </li>
             ))}
           </ul>
-        </section>
-      )}
+        ) : (
+          <p className="mt-3 text-sm text-neutral-600">
+            No reviews yet. Be the first to share your thoughts.
+          </p>
+        )}
+
+        <ReviewForm slug={product.slug} />
+      </section>
     </main>
   );
 }

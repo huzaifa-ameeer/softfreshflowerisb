@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { showToast } from "@/components/Toast";
-import { authClient } from "@/lib/auth-client";
+import { usePathname } from "next/navigation";
 import {
   useEffect,
   useRef,
@@ -58,12 +56,6 @@ const whatsappButtonClass =
 const whatsappOrderLink = `https://wa.me/923188989545?text=${encodeURIComponent(
   "Hi there! I would like to order something",
 )}`;
-
-const loginClass =
-  "shrink-0 items-center justify-center rounded-md bg-pink-500 px-6 py-3 text-base font-semibold text-black transition-colors hover:bg-pink-600 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
-
-const logoutClass =
-  "shrink-0 cursor-pointer items-center justify-center rounded-md border border-pink-500 px-4 py-2 text-sm font-semibold text-pink-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
 
 const mobileLinkBase =
   "rounded-md px-4 py-3.5 text-base font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500";
@@ -136,8 +128,6 @@ export default function Navbar() {
     getIsDesktop,
     getIsDesktopOnServer,
   );
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -193,13 +183,6 @@ export default function Navbar() {
       window.removeEventListener("resize", measure);
     };
   }, [pathname, isDesktop]);
-
-  const handleLogout = async () => {
-    await authClient.signOut();
-    setIsOpen(false);
-    showToast("You have been signed out", "info");
-    router.push("/");
-  };
 
   const handleLogoClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (pathname !== "/") return;
@@ -259,24 +242,6 @@ export default function Navbar() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 justify-self-end sm:gap-3">
-          {isDesktop &&
-            (session ? (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className={`${logoutClass} hidden xl:inline-flex`}
-              >
-                Logout
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                className={`${loginClass} hidden xl:inline-flex`}
-              >
-                Login
-              </Link>
-            ))}
-
           <a
             href={whatsappOrderLink}
             target="_blank"
@@ -324,23 +289,6 @@ export default function Navbar() {
                 </Link>
               );
             })}
-            {session ? (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className={`${logoutClass} mt-2 flex w-full`}
-              >
-                Logout
-              </button>
-            ) : (
-              <Link
-                href="/login"
-                onClick={() => setIsOpen(false)}
-                className={`${loginClass} mt-2 flex`}
-              >
-                Login
-              </Link>
-            )}
           </div>
         </div>
       </div>

@@ -1,3 +1,7 @@
+import { slugify } from "@/lib/slug";
+
+export { slugify };
+
 export type CategoryTone =
   | "rose"
   | "orange"
@@ -112,14 +116,6 @@ export type Product = {
   categorySlug: string;
   categoryName: string;
 };
-
-export function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
 
 export const allProducts: Product[] = categories.flatMap((category) =>
   category.products.map((name) => ({

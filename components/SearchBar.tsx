@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { allProducts } from "@/app/categories/categories";
+
+type ProductSummary = {
+  slug: string;
+  name: string;
+  categoryName: string;
+};
 
 const MAX_RESULTS = 6;
 
@@ -39,15 +44,40 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [products, setProducts] = useState<ProductSummary[]>([]);
+  const loaded = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const term = query.trim().toLowerCase();
   const matches = term
-    ? allProducts
+    ? products
         .filter((product) => product.name.toLowerCase().includes(term))
         .slice(0, MAX_RESULTS)
     : [];
+
+  async function ensureLoaded() {
+    if (loaded.current) return;
+
+    loaded.current = true;
+
+    try {
+      const response = await fetch("/api/products");
+
+      if (response.ok) {
+        const data = (await response.json()) as {
+          products?: ProductSummary[];
+        };
+        setProducts(data.products ?? []);
+      }
+    } catch {
+      loaded.current = false;
+    }
+  }
+
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
 
   useEffect(() => {
     if (inline) return;
@@ -61,10 +91,6 @@ export default function SearchBar({
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [inline]);
-
-  useEffect(() => {
-    if (autoFocus) inputRef.current?.focus();
-  }, [autoFocus]);
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
@@ -89,11 +115,15 @@ export default function SearchBar({
           ref={inputRef}
           type="search"
           value={query}
+          onFocus={() => {
+            setOpen(true);
+            void ensureLoaded();
+          }}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);
+            void ensureLoaded();
           }}
-          onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           aria-label="Search products"
           autoComplete="off"

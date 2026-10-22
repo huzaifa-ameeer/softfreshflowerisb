@@ -1,15 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import ProductGallery from "@/components/ProductGallery";
-import { getProductDetail, productDetails } from "../products";
+import { getProduct } from "@/lib/products";
 
 const WHATSAPP_NUMBER = "923188989545";
 
 export const instant = false;
-
-export function generateStaticParams() {
-  return productDetails.map((product) => ({ slug: product.slug }));
-}
 
 function whatsappHref(name: string) {
   const message = `Hi there! I would like to order:\n\nProduct: ${name}`;
@@ -22,6 +19,8 @@ function formatPrice(price: number) {
 }
 
 function formatDate(value: string) {
+  if (!value) return "";
+
   return new Date(`${value}T00:00:00Z`).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
@@ -88,9 +87,12 @@ export default async function ProductPage({
   params,
 }: PageProps<"/products/[slug]">) {
   const { slug } = await params;
-  const product = getProductDetail(slug);
+  await connection();
+  const product = await getProduct(slug);
 
   if (!product) notFound();
+
+  const images = product.images.map((image) => image.url).filter(Boolean);
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
@@ -110,7 +112,7 @@ export default async function ProductPage({
           <li aria-hidden="true">/</li>
           <li>
             <Link
-              href={`/categories/${product.categorySlug}`}
+              href={`/categories/${product.category}`}
               className="hover:text-pink-700"
             >
               {product.categoryName}
@@ -124,7 +126,7 @@ export default async function ProductPage({
       </nav>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
-        <ProductGallery images={product.images} name={product.name} />
+        <ProductGallery images={images} name={product.name} />
 
         <div className="flex flex-col gap-5">
           <span className="w-fit rounded-full bg-pink-100 px-3 py-1 text-xs font-semibold tracking-wide text-pink-700 uppercase">
@@ -135,12 +137,14 @@ export default async function ProductPage({
             <h1 className="text-3xl font-bold tracking-tight text-pink-700 sm:text-4xl">
               {product.name}
             </h1>
-            <div className="flex items-center gap-2">
-              <Stars rating={product.rating} />
-              <span className="text-sm text-neutral-600">
-                {product.rating} · {product.reviews.length} reviews
-              </span>
-            </div>
+            {product.reviews.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Stars rating={product.rating} />
+                <span className="text-sm text-neutral-600">
+                  {product.rating} · {product.reviews.length} reviews
+                </span>
+              </div>
+            )}
           </div>
 
           <p className="text-2xl font-bold text-pink-900">
@@ -149,17 +153,19 @@ export default async function ProductPage({
 
           <p className="text-base text-neutral-600">{product.description}</p>
 
-          <ul className="flex flex-col gap-2">
-            {product.highlights.map((highlight) => (
-              <li
-                key={highlight}
-                className="flex items-start gap-2 text-sm text-neutral-700"
-              >
-                <CheckIcon className="mt-0.5 size-4 shrink-0 text-pink-500" />
-                {highlight}
-              </li>
-            ))}
-          </ul>
+          {product.highlights.length > 0 && (
+            <ul className="flex flex-col gap-2">
+              {product.highlights.map((highlight) => (
+                <li
+                  key={highlight}
+                  className="flex items-start gap-2 text-sm text-neutral-700"
+                >
+                  <CheckIcon className="mt-0.5 size-4 shrink-0 text-pink-500" />
+                  {highlight}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="mt-2 flex flex-wrap gap-3">
             <a
@@ -172,7 +178,7 @@ export default async function ProductPage({
               Order on WhatsApp
             </a>
             <Link
-              href={`/categories/${product.categorySlug}`}
+              href={`/categories/${product.category}`}
               className="inline-flex items-center justify-center rounded-md border border-pink-500 px-6 py-3 text-base font-semibold text-pink-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
             >
               More in {product.categoryName}
@@ -181,46 +187,48 @@ export default async function ProductPage({
         </div>
       </div>
 
-      <section className="mt-12 border-t border-pink-200 pt-8">
-        <h2 className="text-2xl font-bold tracking-tight text-pink-700">
-          Customer reviews
-        </h2>
-        <div className="mt-3 flex items-center gap-3">
-          <Stars rating={product.rating} />
-          <span className="text-sm font-medium text-neutral-700">
-            {product.rating} out of 5
-          </span>
-          <span className="text-sm text-neutral-500">
-            · {product.reviews.length} reviews
-          </span>
-        </div>
+      {product.reviews.length > 0 && (
+        <section className="mt-12 border-t border-pink-200 pt-8">
+          <h2 className="text-2xl font-bold tracking-tight text-pink-700">
+            Customer reviews
+          </h2>
+          <div className="mt-3 flex items-center gap-3">
+            <Stars rating={product.rating} />
+            <span className="text-sm font-medium text-neutral-700">
+              {product.rating} out of 5
+            </span>
+            <span className="text-sm text-neutral-500">
+              · {product.reviews.length} reviews
+            </span>
+          </div>
 
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {product.reviews.map((review) => (
-            <li
-              key={review.id}
-              className="flex flex-col gap-2 rounded-2xl bg-white/70 p-5 ring-1 ring-pink-200"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <Stars rating={review.rating} />
-                <time
-                  dateTime={review.date}
-                  className="text-xs text-neutral-500"
-                >
-                  {formatDate(review.date)}
-                </time>
-              </div>
-              <h3 className="text-sm font-semibold text-pink-900">
-                {review.title}
-              </h3>
-              <p className="text-sm text-neutral-600">{review.body}</p>
-              <p className="mt-auto text-xs font-medium text-neutral-500">
-                — {review.author}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {product.reviews.map((review, index) => (
+              <li
+                key={review.id || index}
+                className="flex flex-col gap-2 rounded-2xl bg-white/70 p-5 ring-1 ring-pink-200"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <Stars rating={review.rating} />
+                  <time
+                    dateTime={review.date}
+                    className="text-xs text-neutral-500"
+                  >
+                    {formatDate(review.date)}
+                  </time>
+                </div>
+                <h3 className="text-sm font-semibold text-pink-900">
+                  {review.title}
+                </h3>
+                <p className="text-sm text-neutral-600">{review.body}</p>
+                <p className="mt-auto text-xs font-medium text-neutral-500">
+                  — {review.author}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }

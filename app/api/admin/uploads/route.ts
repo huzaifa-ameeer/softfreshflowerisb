@@ -30,12 +30,13 @@ export async function POST(request: Request) {
     }
 
     try {
-      const images: UploadedImage[] = [];
+      const images: UploadedImage[] = await Promise.all(
+        files.map(async (file) => {
+          const buffer = Buffer.from(await file.arrayBuffer());
 
-      for (const file of files) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        images.push(await uploadImageBuffer(buffer));
-      }
+          return uploadImageBuffer(buffer);
+        }),
+      );
 
       return Response.json({ images }, { status: 201 });
     } catch (error) {

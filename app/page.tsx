@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { connection } from "next/server";
+import FeatureStrip from "@/components/FeatureStrip";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import HeroCarousel from "@/components/HeroCarousel";
 
@@ -12,20 +13,7 @@ export default async function Home() {
     <main className="flex flex-1 flex-col">
       <HeroCarousel />
 
-      <div className="flex flex-wrap items-center justify-center gap-3 px-4 py-6 sm:gap-4 sm:py-8">
-        <Link
-          href="/about-us"
-          className="inline-flex items-center justify-center rounded-md border border-pink-500 px-6 py-3 text-base font-semibold text-pink-700 transition-colors hover:bg-pink-500 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
-        >
-          About Us
-        </Link>
-        <Link
-          href="/most-selling-products"
-          className="inline-flex items-center justify-center rounded-md bg-pink-500 px-6 py-3 text-base font-semibold text-black transition-colors hover:bg-pink-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
-        >
-          Top Selling Products
-        </Link>
-      </div>
+      <FeatureStrip />
 
       <FeaturedProducts />
 

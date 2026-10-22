@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import FavouriteButton from "@/components/FavouriteButton";
 
 const WHATSAPP_NUMBER = "923188989545";
 
@@ -65,20 +66,29 @@ export default function ProductCard({ product }: { product: ProductCardData }) {
             {formatPrice(product.price)}
           </p>
         </div>
-        <p className="text-xs text-neutral-600 sm:text-sm">
-          {product.description}
-        </p>
+        <div className="relative z-20 mt-auto flex items-center justify-between gap-2">
+          <a
+            href={whatsappHref(product)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-[#25D366] px-3 py-2 text-xs font-semibold text-green-800 transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 sm:px-4 sm:text-sm"
+          >
+            <WhatsAppIcon className="size-4 shrink-0 sm:size-5" />
+            <span className="sm:hidden">Chat now</span>
+            <span className="hidden sm:inline">Chat on WhatsApp</span>
+          </a>
 
-        <a
-          href={whatsappHref(product)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="relative z-20 mt-auto inline-flex cursor-pointer items-center justify-center gap-2 self-start rounded-full border border-[#25D366] px-3 py-2 text-xs font-semibold text-green-800 transition-colors hover:bg-green-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 sm:px-4 sm:text-sm"
-        >
-          <WhatsAppIcon className="size-4 shrink-0 sm:size-5" />
-          <span className="sm:hidden">Chat now</span>
-          <span className="hidden sm:inline">Chat on WhatsApp</span>
-        </a>
+          <FavouriteButton
+            product={{
+              slug: product.slug,
+              name: product.name,
+              category: product.category,
+              description: product.description,
+              image: product.image,
+              price: product.price,
+            }}
+          />
+        </div>
       </div>
     </article>
   );

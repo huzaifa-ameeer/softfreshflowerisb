@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
-import ProductCard from "@/components/ProductCard";
+import ProductCarousel from "@/components/ProductCarousel";
 import { categoryTones, type CategoryTone } from "../categories";
 import { getCategory } from "@/lib/categories";
 import { listProductsByCategory } from "@/lib/products";
@@ -46,7 +46,7 @@ export default async function CategoryPage({
         </ol>
       </nav>
 
-      <header className="mt-6 flex items-center gap-3">
+      <header className="mt-6 flex flex-col items-center gap-2 text-center">
         <span
           aria-hidden="true"
           className={`flex size-12 shrink-0 items-center justify-center rounded-xl text-2xl ${tone.icon}`}
@@ -66,22 +66,18 @@ export default async function CategoryPage({
       </header>
 
       {products.length > 0 ? (
-        <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-          {products.map((product) => (
-            <li key={product.slug}>
-              <ProductCard
-                product={{
-                  slug: product.slug,
-                  name: product.name,
-                  category: product.categoryName || category.name,
-                  description: product.description,
-                  image: product.image,
-                  price: product.price,
-                }}
-              />
-            </li>
-          ))}
-        </ul>
+        <div className="mt-8">
+          <ProductCarousel
+            products={products.map((product) => ({
+              slug: product.slug,
+              name: product.name,
+              category: product.categoryName || category.name,
+              description: product.description,
+              image: product.image,
+              price: product.price,
+            }))}
+          />
+        </div>
       ) : (
         <p className="mt-8 text-base text-neutral-600">
           We are still arranging this collection. Meanwhile, browse the other

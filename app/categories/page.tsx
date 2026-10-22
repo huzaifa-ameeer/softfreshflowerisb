@@ -33,7 +33,7 @@ export default async function CategoriesPage() {
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-14 lg:px-8">
-      <header className="flex flex-col gap-2">
+      <header className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-3xl font-bold tracking-tight text-pink-700 sm:text-4xl">
           Categories
         </h1>

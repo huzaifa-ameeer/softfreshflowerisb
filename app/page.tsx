@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import HeroCarousel from "@/components/HeroCarousel";
 
-export default function Home() {
-  
+export const instant = false;
+
+export default async function Home() {
+  await connection();
+
   return (
     <main className="flex flex-1 flex-col">
       <HeroCarousel />

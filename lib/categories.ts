@@ -1,5 +1,7 @@
 import { isValidObjectId } from "mongoose";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { categoryTones } from "@/app/categories/categories";
+import { CATEGORIES_TAG, PRODUCTS_TAG } from "@/lib/cache-tags";
 import { connectDB } from "@/lib/db";
 import { CategoryModel } from "@/lib/models/category";
 import { productStatsByCategory } from "@/lib/products";
@@ -153,37 +155,62 @@ async function findRecord(idOrSlug: string): Promise<CategoryRecord | null> {
   return (doc as unknown as CategoryRecord) ?? null;
 }
 
-export async function listCategories(): Promise<CategoryDTO[]> {
-  await connectDB();
+const cachedListCategories = unstable_cache(
+  async () => {
+    await connectDB();
 
-  const docs = await CategoryModel.find().sort({ order: 1, name: 1 }).lean();
+    const docs = await CategoryModel.find().sort({ order: 1, name: 1 }).lean();
 
-  return (docs as unknown as CategoryRecord[]).map(serializeCategory);
+    return (docs as unknown as CategoryRecord[]).map(serializeCategory);
+  },
+  ["categories:list"],
+  { tags: [CATEGORIES_TAG], revalidate: 300 },
+);
+
+export function listCategories() {
+  return cachedListCategories();
 }
 
-export async function listCategoriesForSite(): Promise<CategoryWithStats[]> {
-  const [categories, stats] = await Promise.all([
-    listCategories(),
-    productStatsByCategory(),
-  ]);
+const cachedListCategoriesForSite = unstable_cache(
+  async () => {
+    await connectDB();
 
-  return categories.map((category) => {
-    const stat = stats.get(category.slug);
+    const [docs, stats] = await Promise.all([
+      CategoryModel.find().sort({ order: 1, name: 1 }).lean(),
+      productStatsByCategory(),
+    ]);
 
-    return {
-      ...category,
-      count: stat?.count ?? 0,
-      samples: stat?.samples ?? [],
-    };
-  });
+    return (docs as unknown as CategoryRecord[]).map((record) => {
+      const category = serializeCategory(record);
+      const stat = stats.get(category.slug);
+
+      return {
+        ...category,
+        count: stat?.count ?? 0,
+        samples: stat?.samples ?? [],
+      };
+    });
+  },
+  ["categories:site"],
+  { tags: [CATEGORIES_TAG, PRODUCTS_TAG], revalidate: 300 },
+);
+
+export function listCategoriesForSite() {
+  return cachedListCategoriesForSite();
 }
 
-export async function getCategory(
-  idOrSlug: string,
-): Promise<CategoryDTO | null> {
-  const record = await findRecord(idOrSlug);
+const cachedGetCategory = unstable_cache(
+  async (idOrSlug: string) => {
+    const record = await findRecord(idOrSlug);
 
-  return record ? serializeCategory(record) : null;
+    return record ? serializeCategory(record) : null;
+  },
+  ["categories:get"],
+  { tags: [CATEGORIES_TAG], revalidate: 300 },
+);
+
+export function getCategory(idOrSlug: string) {
+  return cachedGetCategory(idOrSlug);
 }
 
 export async function createCategory(
@@ -208,6 +235,9 @@ export async function createCategory(
 
   try {
     const created = await CategoryModel.create(data);
+
+    revalidateTag(CATEGORIES_TAG, "max");
+    revalidateTag(PRODUCTS_TAG, "max");
 
     return {
       ok: true,
@@ -262,6 +292,9 @@ export async function updateCategory(
       return { ok: false, status: 404, error: "Category not found" };
     }
 
+    revalidateTag(CATEGORIES_TAG, "max");
+    revalidateTag(PRODUCTS_TAG, "max");
+
     return {
       ok: true,
       data: serializeCategory(updated as unknown as CategoryRecord),
@@ -289,6 +322,9 @@ export async function deleteCategory(
   }
 
   await CategoryModel.findByIdAndDelete(record._id);
+
+  revalidateTag(CATEGORIES_TAG, "max");
+  revalidateTag(PRODUCTS_TAG, "max");
 
   return { ok: true, data: { id: String(record._id) } };
 }

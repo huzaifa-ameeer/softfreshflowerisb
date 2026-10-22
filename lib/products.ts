@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { isValidObjectId } from "mongoose";
 import { connectDB } from "@/lib/db";
+import { PRODUCTS_TAG, REVIEWS_TAG } from "@/lib/cache-tags";
 import { CategoryModel } from "@/lib/models/category";
 import { ProductModel } from "@/lib/models/product";
 import { slugify } from "@/lib/slug";
@@ -359,55 +361,77 @@ async function findRecord(idOrSlug: string): Promise<ProductRecord | null> {
   return (doc as unknown as ProductRecord) ?? null;
 }
 
-export async function listProducts(options: ListProductsOptions = {}) {
-  await connectDB();
+const cachedListProducts = unstable_cache(
+  async (options: ListProductsOptions) => {
+    await connectDB();
 
-  const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = {};
 
-  if (options.category) filter.category = slugify(options.category);
-  if (options.fresh) filter.isFresh = true;
-  if (options.top) filter.isTopSelling = true;
+    if (options.category) filter.category = slugify(options.category);
+    if (options.fresh) filter.isFresh = true;
+    if (options.top) filter.isTopSelling = true;
 
-  if (options.q) {
-    filter.name = { $regex: escapeRegex(options.q.trim()), $options: "i" };
-  }
+    if (options.q) {
+      filter.name = { $regex: escapeRegex(options.q.trim()), $options: "i" };
+    }
 
-  const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
-  const page = Math.max(options.page ?? 1, 1);
+    const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
+    const page = Math.max(options.page ?? 1, 1);
 
-  const [docs, total] = await Promise.all([
-    ProductModel.find(filter)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean(),
-    ProductModel.countDocuments(filter),
-  ]);
+    const [docs, total] = await Promise.all([
+      ProductModel.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      ProductModel.countDocuments(filter),
+    ]);
 
-  return {
-    items: (docs as unknown as ProductRecord[]).map(serializeProduct),
-    total,
-    page,
-    limit,
-  };
+    return {
+      items: (docs as unknown as ProductRecord[]).map(serializeProduct),
+      total,
+      page,
+      limit,
+    };
+  },
+  ["products:list"],
+  { tags: [PRODUCTS_TAG], revalidate: 300 },
+);
+
+export function listProducts(options: ListProductsOptions = {}) {
+  return cachedListProducts(options);
 }
 
-export async function getProduct(idOrSlug: string): Promise<ProductDTO | null> {
-  const record = await findRecord(idOrSlug);
+const cachedGetProduct = unstable_cache(
+  async (idOrSlug: string) => {
+    const record = await findRecord(idOrSlug);
 
-  return record ? serializeProduct(record) : null;
+    return record ? serializeProduct(record) : null;
+  },
+  ["products:get"],
+  { tags: [PRODUCTS_TAG], revalidate: 300 },
+);
+
+export function getProduct(idOrSlug: string) {
+  return cachedGetProduct(idOrSlug);
 }
 
-export async function listProductsByCategory(
-  categorySlug: string,
-): Promise<ProductDTO[]> {
-  await connectDB();
+const cachedListProductsByCategory = unstable_cache(
+  async (categorySlug: string) => {
+    await connectDB();
 
-  const docs = await ProductModel.find({ category: categorySlug })
-    .sort({ name: 1 })
-    .lean();
+    const docs = await ProductModel.find({ category: categorySlug })
+      .sort({ name: 1 })
+      .lean();
 
-  return (docs as unknown as ProductRecord[]).map(serializeProduct);
+    return (docs as unknown as ProductRecord[]).map(serializeProduct);
+  },
+  ["products:category"],
+  { tags: [PRODUCTS_TAG], revalidate: 300 },
+);
+
+export function listProductsByCategory(categorySlug: string) {
+  return cachedListProductsByCategory(categorySlug);
 }
 
 export async function productStatsByCategory(): Promise<
@@ -470,6 +494,8 @@ export async function createProduct(
 
   try {
     const created = await ProductModel.create({ ...data, categoryName });
+
+    revalidateTag(PRODUCTS_TAG, "max");
 
     return {
       ok: true,
@@ -541,6 +567,8 @@ export async function updateProduct(
       return { ok: false, status: 404, error: "Product not found" };
     }
 
+    revalidateTag(PRODUCTS_TAG, "max");
+
     return {
       ok: true,
       data: serializeProduct(updated as unknown as ProductRecord),
@@ -568,6 +596,8 @@ export async function deleteProduct(
   }
 
   await ProductModel.findByIdAndDelete(record._id);
+
+  revalidateTag(PRODUCTS_TAG, "max");
 
   const publicIds = normalizeImages(record.images)
     .map((image) => image.publicId)
@@ -675,6 +705,9 @@ export async function addProductReview(
     return { ok: false, status: 404, error: "Product not found" };
   }
 
+  revalidateTag(REVIEWS_TAG, "max");
+  revalidateTag(PRODUCTS_TAG, "max");
+
   return { ok: true, data: serializeReview(review) };
 }
 
@@ -711,37 +744,45 @@ export async function listAllReviews(): Promise<AdminReview[]> {
     .sort((left, right) => right.date.localeCompare(left.date));
 }
 
-export async function listPublishedReviews(): Promise<PublishedReview[]> {
-  await connectDB();
+const cachedListPublishedReviews = unstable_cache(
+  async () => {
+    await connectDB();
 
-  const docs = await ProductModel.find({ "reviews.published": true })
-    .select({ name: 1, slug: 1, images: 1, reviews: 1 })
-    .lean<
-      {
-        name: string;
-        slug: string;
-        images?: ProductImageDTO[] | null;
-        reviews?: ReviewRecord[] | null;
-      }[]
-    >();
+    const docs = await ProductModel.find({ "reviews.published": true })
+      .select({ name: 1, slug: 1, images: 1, reviews: 1 })
+      .lean<
+        {
+          name: string;
+          slug: string;
+          images?: ProductImageDTO[] | null;
+          reviews?: ReviewRecord[] | null;
+        }[]
+      >();
 
-  return docs
-    .flatMap((doc) =>
-      (doc.reviews ?? [])
-        .filter((review) => review.published)
-        .map((review) => ({
-          id: review.id ?? "",
-          author: review.author ?? "",
-          rating: Number(review.rating) || 0,
-          date: review.date ?? "",
-          title: review.title ?? "",
-          body: review.body ?? "",
-          productName: doc.name,
-          productSlug: doc.slug,
-          productImage: doc.images?.[0]?.url ?? "",
-        })),
-    )
-    .sort((left, right) => right.date.localeCompare(left.date));
+    return docs
+      .flatMap((doc) =>
+        (doc.reviews ?? [])
+          .filter((review) => review.published)
+          .map((review) => ({
+            id: review.id ?? "",
+            author: review.author ?? "",
+            rating: Number(review.rating) || 0,
+            date: review.date ?? "",
+            title: review.title ?? "",
+            body: review.body ?? "",
+            productName: doc.name,
+            productSlug: doc.slug,
+            productImage: doc.images?.[0]?.url ?? "",
+          })),
+      )
+      .sort((left, right) => right.date.localeCompare(left.date));
+  },
+  ["reviews:published"],
+  { tags: [REVIEWS_TAG], revalidate: 300 },
+);
+
+export function listPublishedReviews() {
+  return cachedListPublishedReviews();
 }
 
 export async function deleteProductReview(
@@ -766,6 +807,9 @@ export async function deleteProductReview(
   await ProductModel.findByIdAndUpdate(record._id, {
     $set: { reviews, rating },
   });
+
+  revalidateTag(REVIEWS_TAG, "max");
+  revalidateTag(PRODUCTS_TAG, "max");
 
   return { ok: true, data: { id: reviewId } };
 }
@@ -799,6 +843,9 @@ export async function setReviewPublished(
     },
   );
 
+  revalidateTag(REVIEWS_TAG, "max");
+  revalidateTag(PRODUCTS_TAG, "max");
+
   return { ok: true, data: { id: reviewId, published, publishedAt } };
 }
 
@@ -808,17 +855,25 @@ export type ProductSummary = {
   categoryName: string;
 };
 
-export async function listProductSummaries(): Promise<ProductSummary[]> {
-  await connectDB();
+const cachedListProductSummaries = unstable_cache(
+  async () => {
+    await connectDB();
 
-  const docs = await ProductModel.find()
-    .select({ slug: 1, name: 1, categoryName: 1 })
-    .sort({ name: 1 })
-    .lean<{ slug: string; name: string; categoryName?: string | null }[]>();
+    const docs = await ProductModel.find()
+      .select({ slug: 1, name: 1, categoryName: 1 })
+      .sort({ name: 1 })
+      .lean<{ slug: string; name: string; categoryName?: string | null }[]>();
 
-  return docs.map((doc) => ({
-    slug: doc.slug,
-    name: doc.name,
-    categoryName: doc.categoryName ?? "",
-  }));
+    return docs.map((doc) => ({
+      slug: doc.slug,
+      name: doc.name,
+      categoryName: doc.categoryName ?? "",
+    }));
+  },
+  ["products:summaries"],
+  { tags: [PRODUCTS_TAG], revalidate: 300 },
+);
+
+export function listProductSummaries() {
+  return cachedListProductSummaries();
 }

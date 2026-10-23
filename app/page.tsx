@@ -1,14 +1,11 @@
 import Link from "next/link";
 import CategoryStrip from "@/components/CategoryStrip";
-import { connection } from "next/server";
 import FeatureStrip from "@/components/FeatureStrip";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import HeroCarousel from "@/components/HeroCarousel";
 import { LinkPendingSwap } from "@/components/LinkPending";
 
-export default async function Home() {
-  await connection();
-
+export default function Home() {
   return (
     <main className="flex flex-1 flex-col">
       <HeroCarousel />

@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import ProductCarousel from "@/components/ProductCarousel";
 import { categoryTones, type CategoryTone } from "../categories";
-import { getCategory } from "@/lib/categories";
+import { getCategory, listCategories } from "@/lib/categories";
 import { listProductsByCategory } from "@/lib/products";
+
+export async function generateStaticParams() {
+  const categories = await listCategories();
+
+  return categories.map((category) => ({ category: category.slug }));
+}
 
 function toneFor(tone: string) {
   return categoryTones[tone as CategoryTone] ?? categoryTones.rose;
@@ -14,7 +19,6 @@ export default async function CategoryPage({
   params,
 }: PageProps<"/categories/[category]">) {
   const { category: slug } = await params;
-  await connection();
   const category = await getCategory(slug);
 
   if (!category) notFound();

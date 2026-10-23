@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { connection } from "next/server";
 import { LinkPendingSpinner } from "@/components/LinkPending";
 import { listPublishedReviews } from "@/lib/products";
 
@@ -41,8 +40,6 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default async function ReviewsPage() {
-  await connection();
-
   const reviews = await listPublishedReviews();
   const average =
     reviews.length > 0

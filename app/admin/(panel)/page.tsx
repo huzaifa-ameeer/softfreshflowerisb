@@ -1,17 +1,16 @@
 import { categories } from "@/app/categories/categories";
-import { productDetails } from "@/app/products/products";
+import { listAllReviews, listProducts } from "@/lib/products";
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const [{ total }, reviews] = await Promise.all([
+    listProducts({ page: 1, limit: 1 }),
+    listAllReviews(),
+  ]);
+
   const stats = [
-    { label: "Products", value: productDetails.length },
+    { label: "Products", value: total },
     { label: "Categories", value: categories.length },
-    {
-      label: "Customer reviews",
-      value: productDetails.reduce(
-        (total, product) => total + product.reviews.length,
-        0,
-      ),
-    },
+    { label: "Customer reviews", value: reviews.length },
   ];
 
   return (

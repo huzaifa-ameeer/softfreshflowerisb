@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { showToast } from "@/components/Toast";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { Spinner } from "@/components/admin/Loader";
@@ -24,8 +24,8 @@ type AdminReview = {
 type Filter = "all" | "published" | "hidden";
 
 const filters: { key: Filter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "published", label: "On /reviews" },
+  { key: "all", label: "All reviews" },
+  { key: "published", label: "Live on /reviews" },
   { key: "hidden", label: "Hidden" },
 ];
 
@@ -53,7 +53,7 @@ function Stars({ rating }: { rating: number }) {
           viewBox="0 0 24 24"
           fill="currentColor"
           aria-hidden="true"
-          className={`size-4 ${
+          className={`size-3.5 ${
             star <= Math.round(rating) ? "text-amber-400" : "text-neutral-200"
           }`}
         >
@@ -121,31 +121,19 @@ function EyeOffIcon({ className }: { className?: string }) {
   );
 }
 
-export default function ReviewsManager() {
-  const [reviews, setReviews] = useState<AdminReview[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const actionButton =
+  "inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
+
+export default function ReviewsManager({
+  initialReviews,
+}: {
+  initialReviews: AdminReview[];
+}) {
+  const [reviews, setReviews] = useState<AdminReview[]>(initialReviews);
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<AdminReview | null>(null);
-
-  useEffect(() => {
-    void (async () => {
-      const result = await adminFetch<{ reviews: AdminReview[] }>(
-        "/api/admin/reviews",
-      );
-
-      if (result.ok) {
-        setReviews(result.data.reviews ?? []);
-        setError(null);
-      } else {
-        setError(errorMessage(result));
-      }
-
-      setLoading(false);
-    })();
-  }, []);
 
   const counts = useMemo(
     () => ({
@@ -165,29 +153,38 @@ export default function ReviewsManager() {
 
       if (!needle) return true;
 
-      return [review.productName, review.author, review.body]
+      return [review.productName, review.author, review.body, review.title]
         .join(" ")
         .toLowerCase()
         .includes(needle);
     });
   }, [reviews, filter, query]);
 
+  function matchesFilter(review: AdminReview, nextFilter: Filter) {
+    if (nextFilter === "published") return review.published;
+    if (nextFilter === "hidden") return !review.published;
+    return true;
+  }
+
   async function togglePublished(review: AdminReview) {
     const next = !review.published;
+    const previous = reviews;
 
     setBusy(review.id);
     setReviews((current) =>
-      current.map((item) =>
-        item.id === review.id
-          ? {
-              ...item,
-              published: next,
-              publishedAt: next
-                ? new Date().toISOString().slice(0, 10)
-                : "",
-            }
-          : item,
-      ),
+      current
+        .map((item) =>
+          item.id === review.id
+            ? {
+                ...item,
+                published: next,
+                publishedAt: next
+                  ? new Date().toISOString().slice(0, 10)
+                  : "",
+              }
+            : item,
+        )
+        .filter((item) => matchesFilter(item, filter)),
     );
 
     const result = await adminFetch(
@@ -202,23 +199,15 @@ export default function ReviewsManager() {
     setBusy(null);
 
     if (!result.ok) {
-      setReviews((current) =>
-        current.map((item) =>
-          item.id === review.id
-            ? {
-                ...item,
-                published: review.published,
-                publishedAt: review.publishedAt,
-              }
-            : item,
-        ),
-      );
+      setReviews(previous);
       showToast(errorMessage(result), "error");
       return;
     }
 
     showToast(
-      next ? "Review posted to /reviews" : "Review removed from /reviews",
+      next
+        ? "Review posted to /reviews"
+        : "Review hidden temporarily — you can post it again anytime.",
       next ? "success" : "info",
     );
   }
@@ -256,8 +245,8 @@ export default function ReviewsManager() {
           Manage Reviews
         </h1>
         <p className="text-sm text-neutral-500">
-          See every review, remove abusive ones, and choose which reviews appear
-          on the public reviews page.
+          Choose what appears on the public /reviews page. Hidden reviews stay in
+          the database and can be shown again at any time.
         </p>
       </header>
 
@@ -265,7 +254,7 @@ export default function ReviewsManager() {
         {(
           [
             ["Total reviews", counts.all, "text-neutral-900"],
-            ["On /reviews", counts.published, "text-green-700"],
+            ["Live on /reviews", counts.published, "text-green-700"],
             ["Hidden", counts.hidden, "text-neutral-500"],
           ] as const
         ).map(([label, value, tone]) => (
@@ -286,6 +275,7 @@ export default function ReviewsManager() {
               key={item.key}
               type="button"
               onClick={() => setFilter(item.key)}
+              aria-pressed={filter === item.key}
               className={`cursor-pointer rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
                 filter === item.key
                   ? "bg-pink-500 text-black"
@@ -301,100 +291,148 @@ export default function ReviewsManager() {
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search name, product or text…"
+          placeholder="Search author, product or review…"
           aria-label="Search reviews"
           className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 sm:w-72"
         />
       </div>
 
-      {loading ? (
-        <Spinner className="size-6" />
-      ) : error ? (
-        <p className="text-sm text-red-600">{error}</p>
-      ) : visible.length === 0 ? (
+      {visible.length === 0 ? (
         <p className="rounded-xl bg-white p-6 text-sm text-neutral-500 ring-1 ring-neutral-200">
-          No reviews match this view.
+          {reviews.length === 0
+            ? "No reviews have been submitted yet."
+            : query.trim()
+              ? "No reviews match your search."
+              : filter === "published"
+                ? "No reviews are live on /reviews yet."
+                : "No hidden reviews."}
         </p>
       ) : (
-        <ul className="grid gap-4 xl:grid-cols-2">
-          {visible.map((review) => (
-            <li
-              key={`${review.productId}-${review.id}`}
-              className="flex flex-col gap-3 rounded-2xl bg-white p-4 ring-1 ring-neutral-200 sm:p-5"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="flex min-w-0 flex-col gap-0.5">
-                  <p className="text-sm font-semibold text-neutral-900">
-                    {review.author || "Anonymous"}
-                  </p>
-                  <p className="truncate text-xs text-neutral-500">
-                    Review on {review.productName}
-                  </p>
+        <ul className="flex flex-col gap-3">
+          {visible.map((review) => {
+            const isBusy = busy === review.id;
+
+            return (
+              <li
+                key={`${review.productId}-${review.id}`}
+                className="rounded-2xl bg-white p-4 ring-1 ring-neutral-200 sm:p-5"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-neutral-900">
+                        {review.author || "Anonymous"}
+                      </p>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                          review.published
+                            ? "bg-green-100 text-green-800"
+                            : "bg-neutral-100 text-neutral-600"
+                        }`}
+                      >
+                        {review.published ? "Live on /reviews" : "Hidden"}
+                      </span>
+                    </div>
+
+                    <p className="mt-0.5 text-xs text-neutral-500">
+                      On{" "}
+                      <Link
+                        href={`/products/${review.productSlug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-pink-700 hover:underline"
+                      >
+                        {review.productName}
+                      </Link>
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1 text-xs text-neutral-500">
+                    <div className="flex items-center gap-2">
+                      <Stars rating={review.rating} />
+                      <span>{review.rating}/5</span>
+                    </div>
+                    <time dateTime={review.date}>
+                      Submitted {formatDate(review.date)}
+                    </time>
+                    {review.published && review.publishedAt && (
+                      <span className="text-green-700">
+                        Live since {formatDate(review.publishedAt)}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                    review.published
-                      ? "bg-green-100 text-green-800"
-                      : "bg-neutral-100 text-neutral-600"
-                  }`}
-                >
-                  {review.published ? "On /reviews" : "Hidden"}
-                </span>
-              </div>
 
-              <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-500">
-                <Stars rating={review.rating} />
-                <span>{review.rating}/5</span>
-                <span aria-hidden="true">·</span>
-                <time dateTime={review.date}>{formatDate(review.date)}</time>
-                <span aria-hidden="true">·</span>
-                <Link
-                  href={`/products/${review.productSlug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="truncate font-medium text-pink-700 hover:underline"
-                >
-                  {review.productName}
-                </Link>
-              </div>
+                {review.title && (
+                  <h2 className="mt-3 text-sm font-semibold text-neutral-900">
+                    {review.title}
+                  </h2>
+                )}
 
-              <p className="text-sm whitespace-pre-line text-neutral-700">
-                {review.body}
-              </p>
+                <p className="mt-2 text-sm whitespace-pre-line text-neutral-700">
+                  {review.body}
+                </p>
 
-              <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
-                <button
-                  type="button"
-                  onClick={() => togglePublished(review)}
-                  disabled={busy === review.id}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                    review.published
-                      ? "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
-                      : "bg-pink-500 text-black hover:bg-pink-600"
-                  }`}
-                >
-                  {review.published ? (
-                    <EyeOffIcon className="size-4" />
-                  ) : (
-                    <EyeIcon className="size-4" />
-                  )}
-                  {review.published ? "Remove from /reviews" : "Post to /reviews"}
-                </button>
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => togglePublished(review)}
+                    disabled={isBusy || review.published}
+                    title={
+                      review.published
+                        ? "This review is already live on /reviews"
+                        : "Post this review to the public /reviews page"
+                    }
+                    className={`${actionButton} ${
+                      review.published
+                        ? "bg-neutral-100 text-neutral-400"
+                        : "bg-pink-500 text-black hover:bg-pink-600"
+                    }`}
+                  >
+                    {isBusy && !review.published ? (
+                      <Spinner className="size-3.5" />
+                    ) : (
+                      <EyeIcon className="size-3.5" />
+                    )}
+                    Post to /reviews
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => setPendingDelete(review)}
-                  disabled={busy === review.id}
-                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <TrashIcon className="size-4" />
-                  Delete
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => togglePublished(review)}
+                    disabled={isBusy || !review.published}
+                    title={
+                      review.published
+                        ? "Hide this review temporarily without deleting it"
+                        : "This review is already hidden"
+                    }
+                    className={`${actionButton} ${
+                      !review.published
+                        ? "bg-neutral-100 text-neutral-400"
+                        : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                    }`}
+                  >
+                    {isBusy && review.published ? (
+                      <Spinner className="size-3.5" />
+                    ) : (
+                      <EyeOffIcon className="size-3.5" />
+                    )}
+                    Hide temporarily
+                  </button>
 
-                {busy === review.id && <Spinner className="size-4" />}
-              </div>
-            </li>
-          ))}
+                  <button
+                    type="button"
+                    onClick={() => setPendingDelete(review)}
+                    disabled={isBusy}
+                    className={`${actionButton} border border-red-200 text-red-700 hover:bg-red-50`}
+                  >
+                    <TrashIcon className="size-3.5" />
+                    Delete permanently
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
 

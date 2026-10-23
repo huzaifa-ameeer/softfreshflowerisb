@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { showToast } from "@/components/Toast";
 import { Spinner } from "@/components/admin/Loader";
 import ProductForm, { type AdminProduct } from "@/components/admin/ProductForm";
@@ -26,31 +26,16 @@ const headings: Record<Mode, { title: string; description: string }> = {
 const toggleBase =
   "inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
 
-export default function ProductsManager({ mode }: { mode: Mode }) {
-  const [products, setProducts] = useState<AdminProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function ProductsManager({
+  mode,
+  initialProducts,
+}: {
+  mode: Mode;
+  initialProducts: AdminProduct[];
+}) {
+  const [products, setProducts] = useState<AdminProduct[]>(initialProducts);
   const [editing, setEditing] = useState<AdminProduct | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-
-  useEffect(() => {
-    void (async () => {
-      const query =
-        mode === "fresh" ? "?fresh=1" : mode === "top" ? "?top=1" : "";
-      const result = await adminFetch<{ items: AdminProduct[] }>(
-        `/api/admin/products${query}`,
-      );
-
-      if (result.ok) {
-        setProducts(result.data.items ?? []);
-        setError(null);
-      } else {
-        setError(errorMessage(result));
-      }
-
-      setLoading(false);
-    })();
-  }, [mode]);
 
   function matchesMode(product: AdminProduct) {
     if (mode === "fresh") return product.isFresh;
@@ -144,11 +129,7 @@ export default function ProductsManager({ mode }: { mode: Mode }) {
         />
       )}
 
-      {loading ? (
-        <Spinner className="size-6" />
-      ) : error ? (
-        <p className="text-sm text-red-600">{error}</p>
-      ) : products.length === 0 ? (
+      {products.length === 0 ? (
         <p className="text-sm text-neutral-500">No products here yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">

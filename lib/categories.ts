@@ -1,5 +1,5 @@
 import { isValidObjectId } from "mongoose";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { categoryTones } from "@/app/categories/categories";
 import { CATEGORIES_TAG, PRODUCTS_TAG } from "@/lib/cache-tags";
 import { connectDB } from "@/lib/db";
@@ -76,6 +76,14 @@ function serializeCategory(record: CategoryRecord): CategoryDTO {
     createdAt: toIso(record.createdAt),
     updatedAt: toIso(record.updatedAt),
   };
+}
+
+function revalidateCategoryPages(slug?: string) {
+  revalidatePath("/");
+  revalidatePath("/categories");
+  revalidatePath("/admin/categories");
+
+  if (slug) revalidatePath(`/categories/${slug}`);
 }
 
 function isDuplicateKey(error: unknown) {
@@ -238,6 +246,7 @@ export async function createCategory(
 
     revalidateTag(CATEGORIES_TAG, "max");
     revalidateTag(PRODUCTS_TAG, "max");
+    revalidateCategoryPages(created.slug);
 
     return {
       ok: true,
@@ -294,6 +303,8 @@ export async function updateCategory(
 
     revalidateTag(CATEGORIES_TAG, "max");
     revalidateTag(PRODUCTS_TAG, "max");
+    revalidateCategoryPages(record.slug);
+    revalidateCategoryPages(updated.slug);
 
     return {
       ok: true,
@@ -325,6 +336,7 @@ export async function deleteCategory(
 
   revalidateTag(CATEGORIES_TAG, "max");
   revalidateTag(PRODUCTS_TAG, "max");
+  revalidateCategoryPages(record.slug);
 
   return { ok: true, data: { id: String(record._id) } };
 }

@@ -19,17 +19,21 @@ export async function withAdmin(
 
     return await handler();
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "digest" in error &&
-      error.digest === "NEXT_PRERENDER_INTERRUPTED"
-    ) {
-      throw error;
-    }
+    if (isControlFlowError(error)) throw error;
 
     console.error("[admin api]", error);
 
     return jsonError(500, "Something went wrong.");
   }
+}
+
+function isControlFlowError(error: unknown) {
+  if (typeof error !== "object" || error === null) return false;
+
+  const digest = (error as { digest?: unknown }).digest;
+
+  return (
+    typeof digest === "string" &&
+    (digest === "NEXT_PRERENDER_INTERRUPTED" || digest.startsWith("NEXT_"))
+  );
 }

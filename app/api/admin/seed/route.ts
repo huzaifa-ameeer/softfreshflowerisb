@@ -1,6 +1,12 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 import { categories } from "@/app/categories/categories";
 import { productDetails } from "@/app/products/products";
 import { withAdmin } from "@/lib/api";
+import {
+  CATEGORIES_TAG,
+  PRODUCTS_TAG,
+  REVIEWS_TAG,
+} from "@/lib/cache-tags";
 import { connectDB } from "@/lib/db";
 import { CategoryModel } from "@/lib/models/category";
 import { ProductModel } from "@/lib/models/product";
@@ -73,19 +79,30 @@ export async function POST(request: Request) {
                 CATEGORY_PHOTOS[product.categorySlug] ?? [PHOTOS.bouquet]
               ).map((url) => ({ url, publicId: "" })),
               highlights: product.highlights,
-              reviews: product.reviews.map((review) => ({
-                ...review,
-                published: true,
-                publishedAt: review.date,
-              })),
-              rating: product.rating,
               isFresh: FRESH_SLUGS.includes(product.slug),
+            },
+            $setOnInsert: {
+              reviews: [],
+              rating: 0,
             },
           },
           upsert: true,
         },
       })),
     );
+
+    revalidateTag(CATEGORIES_TAG, "max");
+    revalidateTag(PRODUCTS_TAG, "max");
+    revalidateTag(REVIEWS_TAG, "max");
+    revalidatePath("/");
+    revalidatePath("/categories");
+    revalidatePath("/most-selling-products");
+    revalidatePath("/reviews");
+    revalidatePath("/admin/reviews");
+    revalidatePath("/admin/categories");
+    revalidatePath("/admin/edit-delete-products");
+    revalidatePath("/admin/fresh-products");
+    revalidatePath("/admin/top-selling-products");
 
     return Response.json({
       categories: {

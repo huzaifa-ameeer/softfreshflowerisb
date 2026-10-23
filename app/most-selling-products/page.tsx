@@ -1,10 +1,7 @@
-import { connection } from "next/server";
 import ProductCarousel from "@/components/ProductCarousel";
 import { listProducts } from "@/lib/products";
 
 export default async function MostSellingProductsPage() {
-  await connection();
-
   const { items } = await listProducts({ top: true, limit: 40 });
 
   return (

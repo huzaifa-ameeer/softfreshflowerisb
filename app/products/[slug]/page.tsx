@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
 import ProductGallery from "@/components/ProductGallery";
 import ReviewForm from "@/components/ReviewForm";
-import { getProduct } from "@/lib/products";
+import { getProduct, listProductSummaries } from "@/lib/products";
 
 const WHATSAPP_NUMBER = "923188989545";
+
+export async function generateStaticParams() {
+  const products = await listProductSummaries();
+
+  return products.map((product) => ({ slug: product.slug }));
+}
 
 function whatsappHref(name: string) {
   const message = `Hi there! I would like to order:\n\nProduct: ${name}`;
@@ -86,7 +91,6 @@ export default async function ProductPage({
   params,
 }: PageProps<"/products/[slug]">) {
   const { slug } = await params;
-  await connection();
   const product = await getProduct(slug);
 
   if (!product) notFound();

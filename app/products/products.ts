@@ -1,14 +1,5 @@
 import { allProducts, type Product } from "@/app/categories/categories";
 
-export type ProductReview = {
-  id: string;
-  author: string;
-  rating: number;
-  date: string;
-  title: string;
-  body: string;
-};
-
 type ProductDetailFields = {
   price: number;
   description: string;
@@ -16,110 +7,7 @@ type ProductDetailFields = {
   images: string[];
 };
 
-export type ProductDetail = Product &
-  ProductDetailFields & {
-    rating: number;
-    reviews: ProductReview[];
-  };
-
-const reviewPool: ProductReview[] = [
-  {
-    id: "r1",
-    author: "Ayesha K.",
-    rating: 5,
-    date: "2026-09-12",
-    title: "Absolutely beautiful",
-    body: "Looked even better than the photos and was delivered right on time in F-7.",
-  },
-  {
-    id: "r2",
-    author: "Bilal A.",
-    rating: 5,
-    date: "2026-09-03",
-    title: "Great quality",
-    body: "Fresh and long lasting. My family loved it, will definitely order again.",
-  },
-  {
-    id: "r3",
-    author: "Hina R.",
-    rating: 4,
-    date: "2026-08-27",
-    title: "Lovely, slightly late",
-    body: "Beautiful presentation and neat packaging, only a few minutes past the slot.",
-  },
-  {
-    id: "r4",
-    author: "Usman T.",
-    rating: 5,
-    date: "2026-08-19",
-    title: "Perfect gift",
-    body: "Ordered for my mother's birthday and she adored it. Highly recommended.",
-  },
-  {
-    id: "r5",
-    author: "Sana M.",
-    rating: 4,
-    date: "2026-08-11",
-    title: "Worth the price",
-    body: "Good value for the size and the little gift card was a nice touch.",
-  },
-  {
-    id: "r6",
-    author: "Hamza S.",
-    rating: 5,
-    date: "2026-08-02",
-    title: "Excellent service",
-    body: "The team was responsive on WhatsApp and the delivery across the city was smooth.",
-  },
-  {
-    id: "r7",
-    author: "Maryam N.",
-    rating: 3,
-    date: "2026-07-25",
-    title: "Nice but a bit small",
-    body: "Pretty finish overall, though a touch smaller than I had pictured.",
-  },
-  {
-    id: "r8",
-    author: "Zeeshan Q.",
-    rating: 5,
-    date: "2026-07-18",
-    title: "Repeat customer",
-    body: "Third order this year and the quality has been consistent every single time.",
-  },
-  {
-    id: "r9",
-    author: "Fatima I.",
-    rating: 4,
-    date: "2026-07-09",
-    title: "Very pretty",
-    body: "Arrived looking lovely and stayed fresh for days. Packaging could be sturdier.",
-  },
-  {
-    id: "r10",
-    author: "Ali R.",
-    rating: 5,
-    date: "2026-06-30",
-    title: "Highly recommend",
-    body: "Exactly as described and delivered the same day, which was a lifesaver.",
-  },
-  {
-    id: "r11",
-    author: "Nida F.",
-    rating: 4,
-    date: "2026-06-21",
-    title: "Happy customer",
-    body: "Ordered on short notice and they still managed a same-day delivery.",
-  },
-  {
-    id: "r12",
-    author: "Tariq H.",
-    rating: 5,
-    date: "2026-06-12",
-    title: "Beautiful work",
-    body: "The craftsmanship is lovely and the recipient was absolutely thrilled.",
-  },
-];
+export type ProductDetail = Product & ProductDetailFields;
 
 const detailsBySlug: Record<string, ProductDetailFields> = {
   "red-roses": {
@@ -332,18 +220,6 @@ const fallbackDetail: ProductDetailFields = {
   images: ["/1.png", "/2.png", "/3.png"],
 };
 
-function reviewsFor(index: number) {
-  return Array.from(
-    { length: 3 },
-    (_, offset) => reviewPool[(index * 3 + offset) % reviewPool.length],
-  );
-}
-
-function averageRating(reviews: ProductReview[]) {
-  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
-  return Math.round((total / reviews.length) * 10) / 10;
-}
-
 const featuredExtras: Product[] = [
   {
     slug: "blush-rose-bouquet",
@@ -367,14 +243,11 @@ const featuredExtras: Product[] = [
 
 export const catalog: Product[] = [...allProducts, ...featuredExtras];
 
-export const productDetails: ProductDetail[] = catalog.map(
-  (product, index) => {
-    const fields = detailsBySlug[product.slug] ?? fallbackDetail;
-    const reviews = reviewsFor(index);
+export const productDetails: ProductDetail[] = catalog.map((product) => {
+  const fields = detailsBySlug[product.slug] ?? fallbackDetail;
 
-    return { ...product, ...fields, rating: averageRating(reviews), reviews };
-  },
-);
+  return { ...product, ...fields };
+});
 
 export function getProductDetail(slug: string) {
   return productDetails.find((product) => product.slug === slug);

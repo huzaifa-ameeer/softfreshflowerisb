@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SearchBar from "@/components/SearchBar";
-import { LinkPendingSpinner } from "@/components/LinkPending";
 import { useFavourites } from "@/lib/favourites-store";
 import {
   useEffect,
@@ -254,6 +253,7 @@ export default function Navbar() {
       <nav className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-4 sm:h-20 sm:gap-4 sm:px-6 lg:px-8 xl:grid-cols-[1fr_auto_1fr]">
         <Link
           href="/"
+          prefetch={true}
           onClick={handleLogoClick}
           className="flex min-w-0 items-baseline gap-1.5 justify-self-start focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pink-500"
         >
@@ -285,11 +285,11 @@ export default function Navbar() {
               <Link
                 key={link.label}
                 href={link.href}
+                prefetch={true}
                 aria-current={active ? "page" : undefined}
                 className={active ? linkActive : linkIdle}
               >
                 {link.label}
-                <LinkPendingSpinner className="absolute top-1 right-0.5 size-2.5" />
               </Link>
             );
           })}
@@ -300,6 +300,7 @@ export default function Navbar() {
 
           <Link
             href="/fav"
+            prefetch={true}
             aria-label={`Favourites (${favouriteCount})`}
             className={`${iconButtonClass} relative hidden xl:inline-flex`}
           >
@@ -375,12 +376,12 @@ export default function Navbar() {
                 <Link
                   key={link.label}
                   href={link.href}
+                  prefetch={true}
                   onClick={() => setIsOpen(false)}
                   aria-current={active ? "page" : undefined}
                   className={active ? mobileLinkActive : mobileLinkIdle}
                 >
                   {link.label}
-                  <LinkPendingSpinner className="size-4" />
                 </Link>
               );
             })}

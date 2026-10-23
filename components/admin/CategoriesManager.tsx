@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { showToast } from "@/components/Toast";
 import ConfirmDialog from "@/components/admin/ConfirmDialog";
 import { Spinner } from "@/components/admin/Loader";
@@ -48,32 +48,17 @@ const primaryButton =
 const ghostButton =
   "inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100";
 
-export default function CategoriesManager() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function CategoriesManager({
+  initialCategories,
+}: {
+  initialCategories: Category[];
+}) {
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
-
-  useEffect(() => {
-    void (async () => {
-      const result = await adminFetch<{ categories: Category[] }>(
-        "/api/admin/categories",
-      );
-
-      if (result.ok) {
-        setCategories(result.data.categories ?? []);
-        setError(null);
-      } else {
-        setError(errorMessage(result));
-      }
-
-      setLoading(false);
-    })();
-  }, []);
 
   function startCreate() {
     setEditing("new");
@@ -253,11 +238,7 @@ export default function CategoriesManager() {
         </form>
       )}
 
-      {loading ? (
-        <Spinner className="size-6" />
-      ) : error ? (
-        <p className="text-sm text-red-600">{error}</p>
-      ) : categories.length === 0 ? (
+      {categories.length === 0 ? (
         <p className="text-sm text-neutral-500">No categories yet.</p>
       ) : (
         <ul className="flex flex-col gap-2">

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { isValidObjectId } from "mongoose";
 import { connectDB } from "@/lib/db";
 import { PRODUCTS_TAG, REVIEWS_TAG } from "@/lib/cache-tags";
@@ -175,6 +175,24 @@ export function serializeProduct(record: ProductRecord): ProductDTO {
     createdAt: toIso(record.createdAt),
     updatedAt: toIso(record.updatedAt),
   };
+}
+
+function revalidateProductPages(slug?: string, category?: string) {
+  revalidatePath("/");
+  revalidatePath("/categories");
+  revalidatePath("/most-selling-products");
+  revalidatePath("/admin/edit-delete-products");
+  revalidatePath("/admin/fresh-products");
+  revalidatePath("/admin/top-selling-products");
+
+  if (slug) revalidatePath(`/products/${slug}`);
+  if (category) revalidatePath(`/categories/${category}`);
+}
+
+function revalidateReviewPages(productSlug: string) {
+  revalidatePath("/reviews");
+  revalidatePath(`/products/${productSlug}`);
+  revalidatePath("/admin/reviews");
 }
 
 function isDuplicateKey(error: unknown) {
@@ -496,6 +514,7 @@ export async function createProduct(
     const created = await ProductModel.create({ ...data, categoryName });
 
     revalidateTag(PRODUCTS_TAG, "max");
+    revalidateProductPages(created.slug, created.category);
 
     return {
       ok: true,
@@ -568,6 +587,8 @@ export async function updateProduct(
     }
 
     revalidateTag(PRODUCTS_TAG, "max");
+    revalidateProductPages(record.slug, record.category);
+    revalidateProductPages(updated.slug, updated.category);
 
     return {
       ok: true,
@@ -598,6 +619,7 @@ export async function deleteProduct(
   await ProductModel.findByIdAndDelete(record._id);
 
   revalidateTag(PRODUCTS_TAG, "max");
+  revalidateProductPages(record.slug, record.category);
 
   const publicIds = normalizeImages(record.images)
     .map((image) => image.publicId)
@@ -707,41 +729,50 @@ export async function addProductReview(
 
   revalidateTag(REVIEWS_TAG, "max");
   revalidateTag(PRODUCTS_TAG, "max");
+  revalidateReviewPages(record.slug);
 
   return { ok: true, data: serializeReview(review) };
 }
 
-export async function listAllReviews(): Promise<AdminReview[]> {
-  await connectDB();
+const cachedListAllReviews = unstable_cache(
+  async (): Promise<AdminReview[]> => {
+    await connectDB();
 
-  const docs = await ProductModel.find({ "reviews.0": { $exists: true } })
-    .select({ name: 1, slug: 1, reviews: 1 })
-    .lean<
-      {
-        _id: unknown;
-        name: string;
-        slug: string;
-        reviews?: ReviewRecord[] | null;
-      }[]
-    >();
+    const docs = await ProductModel.find({ "reviews.0": { $exists: true } })
+      .select({ name: 1, slug: 1, reviews: 1 })
+      .lean<
+        {
+          _id: unknown;
+          name: string;
+          slug: string;
+          reviews?: ReviewRecord[] | null;
+        }[]
+      >();
 
-  return docs
-    .flatMap((doc) =>
-      (doc.reviews ?? []).map((review) => ({
-        id: review.id ?? "",
-        productId: String(doc._id),
-        productName: doc.name,
-        productSlug: doc.slug,
-        author: review.author ?? "",
-        rating: Number(review.rating) || 0,
-        date: review.date ?? "",
-        title: review.title ?? "",
-        body: review.body ?? "",
-        published: Boolean(review.published),
-        publishedAt: review.publishedAt ?? "",
-      })),
-    )
-    .sort((left, right) => right.date.localeCompare(left.date));
+    return docs
+      .flatMap((doc) =>
+        (doc.reviews ?? []).map((review) => ({
+          id: review.id ?? "",
+          productId: String(doc._id),
+          productName: doc.name,
+          productSlug: doc.slug,
+          author: review.author ?? "",
+          rating: Number(review.rating) || 0,
+          date: review.date ?? "",
+          title: review.title ?? "",
+          body: review.body ?? "",
+          published: Boolean(review.published),
+          publishedAt: review.publishedAt ?? "",
+        })),
+      )
+      .sort((left, right) => right.date.localeCompare(left.date));
+  },
+  ["reviews:admin"],
+  { tags: [REVIEWS_TAG], revalidate: 300 },
+);
+
+export function listAllReviews() {
+  return cachedListAllReviews();
 }
 
 const cachedListPublishedReviews = unstable_cache(
@@ -810,6 +841,7 @@ export async function deleteProductReview(
 
   revalidateTag(REVIEWS_TAG, "max");
   revalidateTag(PRODUCTS_TAG, "max");
+  revalidateReviewPages(record.slug);
 
   return { ok: true, data: { id: reviewId } };
 }
@@ -845,6 +877,7 @@ export async function setReviewPublished(
 
   revalidateTag(REVIEWS_TAG, "max");
   revalidateTag(PRODUCTS_TAG, "max");
+  revalidateReviewPages(record.slug);
 
   return { ok: true, data: { id: reviewId, published, publishedAt } };
 }

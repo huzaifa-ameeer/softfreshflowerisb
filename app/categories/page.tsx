@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { connection } from "next/server";
 import { categoryTones, type CategoryTone } from "./categories";
 import { LinkPendingOverlay } from "@/components/LinkPending";
 import { listCategoriesForSite } from "@/lib/categories";
@@ -26,8 +25,6 @@ function ChevronRightIcon({ className }: { className?: string }) {
 }
 
 export default async function CategoriesPage() {
-  await connection();
-
   const categories = await listCategoriesForSite();
 
   return (

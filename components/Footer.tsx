@@ -95,7 +95,7 @@ export default function Footer() {
             href={WHATSAPP_HREF}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex w-fit items-center gap-2 rounded-md bg-pink-500 px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-pink-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
+            className="inline-flex w-fit items-center gap-2 rounded-md bg-[#25D366] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#20ba5a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366]"
           >
             <WhatsAppIcon className="size-4" />
             Order on WhatsApp
@@ -168,14 +168,10 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-pink-200">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-center px-4 py-4 text-xs text-neutral-500 sm:px-6 lg:px-8">
-          <p>© Soft Fresh Flower ISB. All rights reserved.</p>
-        </div>
-      </div>
+
 
       <div className="hidden sm:block">
-        <AnnouncementBar />
+        <AnnouncementBar className="bg-[#f6339a]" />
       </div>
     </footer>
   );

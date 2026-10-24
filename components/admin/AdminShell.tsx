@@ -190,10 +190,26 @@ export default function AdminShell({
 
   const handleSignOut = async () => {
     setSigningOut(true);
-    await authClient.signOut();
-    showToast("Signed out successfully", "info");
-    router.replace("/admin/login");
-    router.refresh();
+
+    try {
+      const { error } = await authClient.signOut();
+
+      if (error) {
+        throw new Error(error.message ?? "Could not sign you out.");
+      }
+
+      showToast("Signed out successfully", "info");
+      router.replace("/admin/login");
+      router.refresh();
+    } catch (error) {
+      console.error("[admin] sign-out failed:", error);
+      showToast(
+        error instanceof Error ? error.message : "Could not sign you out.",
+        "error",
+      );
+    } finally {
+      setSigningOut(false);
+    }
   };
 
   return (

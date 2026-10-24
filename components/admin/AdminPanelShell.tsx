@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import AdminShell from "@/components/admin/AdminShell";
+import { isAdminEmail } from "@/lib/admin-auth";
 import { getAuth } from "@/lib/auth";
 
 export default async function AdminPanelShell({
@@ -12,7 +13,7 @@ export default async function AdminPanelShell({
   const auth = await getAuth();
   const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!session) redirect("/admin/login");
+  if (!session || !isAdminEmail(session.user.email)) redirect("/admin/login");
 
   return (
     <AdminShell user={{ name: session.user.name, email: session.user.email }}>

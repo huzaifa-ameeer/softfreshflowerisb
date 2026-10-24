@@ -26,6 +26,7 @@ async function createAuth() {
     database: mongodbAdapter(db),
     emailAndPassword: {
       enabled: true,
+      disableSignUp: true,
     },
     session: {
       cookieCache: {

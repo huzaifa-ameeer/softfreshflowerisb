@@ -25,6 +25,8 @@ Space Grotesk is loaded through `next/font` and exposed as `--font-space-grotesk
 
 ## Notes
 
+- Set `ADMIN_EMAIL` in the environment to the email authorized for the admin
+  panel. Public email/password sign-up is disabled.
 - The theme is intentionally light-only. `app/globals.css` pins the `dark:`
   variant to a `.dark` class that is never applied, so the OS dark-mode setting
   cannot flip the site.

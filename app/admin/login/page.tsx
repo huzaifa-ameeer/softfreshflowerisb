@@ -1,7 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import { showToast } from "@/components/Toast";
 import { authClient } from "@/lib/auth-client";
 
@@ -35,16 +41,31 @@ export default function AdminLoginPage() {
   const [pending, setPending] = useState(false);
   const interacted = useRef(false);
 
+  const resetForm = useCallback(() => {
+    interacted.current = false;
+    setEmail("");
+    setPassword("");
+    setUnlocked(false);
+    setError(null);
+    setPending(false);
+  }, []);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (!interacted.current) {
-        setEmail("");
-        setPassword("");
-      }
+      if (!interacted.current) resetForm();
     }, 300);
 
-    return () => clearTimeout(timeout);
-  }, []);
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) resetForm();
+    };
+
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, [resetForm]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -63,6 +84,7 @@ export default function AdminLoginPage() {
     }
 
     showToast("Logged in successfully");
+    resetForm();
     router.replace("/admin");
     router.refresh();
   }

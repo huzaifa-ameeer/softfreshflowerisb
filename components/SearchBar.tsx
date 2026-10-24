@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useRouter } from "next/navigation";
 
 type ProductSummary = {
   slug: string;
@@ -45,9 +46,11 @@ export default function SearchBar({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [products, setProducts] = useState<ProductSummary[]>([]);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const loaded = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const term = query.trim().toLowerCase();
   const matches = term
@@ -76,6 +79,24 @@ export default function SearchBar({
   }
 
   useEffect(() => {
+    setActiveIndex(-1);
+  }, [query]);
+
+  useEffect(() => {
+    function onGlobalKeyDown(event: globalThis.KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setOpen(true);
+        void ensureLoaded();
+        inputRef.current?.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onGlobalKeyDown);
+    return () => document.removeEventListener("keydown", onGlobalKeyDown);
+  }, []);
+
+  useEffect(() => {
     if (autoFocus) inputRef.current?.focus();
   }, [autoFocus]);
 
@@ -85,6 +106,7 @@ export default function SearchBar({
     function onPointerDown(event: PointerEvent) {
       if (!containerRef.current?.contains(event.target as Node)) {
         setOpen(false);
+        setActiveIndex(-1);
       }
     }
 
@@ -95,13 +117,44 @@ export default function SearchBar({
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "Escape") {
       setOpen(false);
+      setActiveIndex(-1);
       event.currentTarget.blur();
+      return;
+    }
+
+    if (!matches.length) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex((prev) => (prev + 1 >= matches.length ? 0 : prev + 1));
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex((prev) => (prev - 1 < 0 ? matches.length - 1 : prev - 1));
+      return;
+    }
+
+    if (event.key === "Enter") {
+      if (activeIndex >= 0 && activeIndex < matches.length) {
+        event.preventDefault();
+        const product = matches[activeIndex];
+        setQuery("");
+        setOpen(false);
+        setActiveIndex(-1);
+        onNavigate?.();
+        router.push(`/products/${product.slug}`);
+      }
     }
   }
 
   function handleSelect() {
     setQuery("");
     setOpen(false);
+    setActiveIndex(-1);
     onNavigate?.();
   }
 
@@ -127,7 +180,7 @@ export default function SearchBar({
           onKeyDown={handleKeyDown}
           aria-label="Search products"
           autoComplete="off"
-          placeholder="Search flowers…"
+          placeholder="Search flowers..."
           className="w-full rounded-md border border-pink-200 bg-white py-2 pr-3 pl-9 text-sm text-neutral-900 placeholder:text-neutral-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
         />
       </div>
@@ -142,12 +195,14 @@ export default function SearchBar({
         >
           {matches.length > 0 ? (
             <ul className="max-h-72 overflow-y-auto py-1">
-              {matches.map((product) => (
+              {matches.map((product, index) => (
                 <li key={product.slug}>
                   <Link
                     href={`/products/${product.slug}`}
                     onClick={handleSelect}
-                    className="flex flex-col gap-0.5 px-3 py-2 transition-colors hover:bg-pink-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-pink-500"
+                    className={`flex flex-col gap-0.5 px-3 py-2 transition-colors ${
+                      activeIndex === index ? "bg-pink-100" : "hover:bg-pink-100"
+                    } focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-pink-500`}
                   >
                     <span className="text-sm font-semibold text-pink-900">
                       {product.name}

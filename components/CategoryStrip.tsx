@@ -4,7 +4,7 @@ import { LinkPendingOverlay, LinkPendingSwap } from "@/components/LinkPending";
 import { listCategoriesForSite } from "@/lib/categories";
 
 function toneFor(tone: string) {
-  return categoryTones[tone as CategoryTone] ?? categoryTones.rose;
+  return categoryTones[tone as CategoryTone] ??  categoryTones.rose;
 }
 
 export default async function CategoryStrip() {

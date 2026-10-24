@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { showToast } from "@/components/Toast";
 
+const INSTAGRAM_HREF =
+  "https://www.instagram.com/soft_flower_bouquet_?dlrf=MWpldHA3cjZyNnJkaw%3D%3D";
+
 type Location = {
   name: string;
   address: string;
@@ -14,10 +17,9 @@ type Location = {
 
 const locations: Location[] = [
   {
-    name: "Bahria Town Phase II",
+    name: "Bahria Town Phase III",
     address:
-      "Service Rd, Bahria Town Phase II, Phase 2, Bahria Town, Rawalpindi",
-    plusCode: "H43F+266",
+      "Service Rd, Bahria Town Phase III, Bahria Town, Rawalpindi, Pakistan",
     directions:
       "https://www.google.com/maps/search/?api=1&query=33.552537,73.123016",
     embed: "https://www.google.com/maps?q=33.552537,73.123016&z=16&output=embed",
@@ -225,6 +227,32 @@ export default function ContactPage() {
               )}
               {isLoading ? "Sending..." : "Send Message"}
             </button>
+            <a
+              href={INSTAGRAM_HREF}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-neutral-700 transition-colors hover:text-pink-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500"
+            >
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden="true"
+              >
+                <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#contact-instagram-gradient)" />
+                <rect x="6.5" y="6.5" width="11" height="11" rx="3.5" stroke="white" strokeWidth="1.8" />
+                <circle cx="12" cy="12" r="2.7" stroke="white" strokeWidth="1.8" />
+                <circle cx="17.6" cy="6.8" r="1.1" fill="white" />
+                <defs>
+                  <linearGradient id="contact-instagram-gradient" x1="3" y1="21" x2="21" y2="3" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#FFB02E" />
+                    <stop offset=".5" stopColor="#F02D78" />
+                    <stop offset="1" stopColor="#8134AF" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              Instagram: @soft_flower_bouquet_
+            </a>
           </div>
         </form>
       </section>

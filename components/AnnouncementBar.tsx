@@ -30,9 +30,9 @@ function ClockIcon({ className }: { className?: string }) {
   );
 }
 
-export default function AnnouncementBar() {
+export default function AnnouncementBar({ className = "" }: { className?: string } = {}) {
   return (
-    <div className="flex items-center gap-2 bg-[#7b2fbf] p-2 sm:gap-3">
+    <div className={`flex items-center gap-2 ${className || "bg-[#7b2fbf]"} p-2 sm:gap-3`}>
       <div className="flex shrink-0 items-center gap-1.5 rounded-md border border-neutral-900/30 bg-[#f7d54a] px-3 py-2 text-[11px] font-bold uppercase tracking-wide text-neutral-900 sm:text-xs">
         <ClockIcon className="size-3.5 shrink-0 sm:size-4" />
         <span className="whitespace-nowrap">30 Minutes Delivery</span>
